@@ -1,0 +1,31 @@
+version: '3.0'
+
+services:
+  nestjs_starter_posgres: # rename service
+    image: postgres:alpine
+    container_name: nestjs_starter_posgres # rename container name
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - '5432:5432'
+    volumes:
+      - nestjs_starter_posgres_data:/var/lib/postgresql/data
+  nestjs_starter_redis: # rename service
+    image: redis:alpine
+    container_name: nestjs_starter_redis # rename container name
+    ports:
+      - '6379:6379'
+    volumes:
+      - nestjs_starter_redis_data:/data
+
+networks:
+  default:
+    name: nestjs_starter
+
+volumes:
+  nestjs_starter_posgres_data:
+  redis_data:
