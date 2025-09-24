@@ -1,10 +1,24 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { ApiModule } from '@/modules/api.module';
+import { ConfigModule } from '@nestjs/config';
+import { GracefulShutdownModule } from 'nestjs-graceful-shutdown';
+import appConfig from '@/config/app/app.config';
+import { DatabaseModule } from '@/database/database.module';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: ['.env'],
+      load: [appConfig],
+    }),
+    DatabaseModule,
+    ApiModule,
+    GracefulShutdownModule.forRoot({
+      cleanup: (...args) => {
+        console.log('App shutting down...', args);
+      },
+    }),
+  ],
 })
 export class AppModule {}

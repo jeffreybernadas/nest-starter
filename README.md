@@ -25,9 +25,9 @@
 
 ## Features (WIP)
 
-- [ ] Nest with Express
+- [x] Nest with Express
 - [ ] Multiple DB connections with Prisma:
-  - [ ] PostgreSQL
+  - [x] PostgreSQL
   - [ ] MongoDB
   - [ ] MySQL
 - [ ] API Versioning
@@ -81,12 +81,12 @@
 
 - [ ] Logging with Winston & Elasticsearch (w/ APM)
 
-- [ ] Graceful Shutdown
+- [x] Graceful Shutdown
 
 - [ ] Server & Database monitoring with Prometheus & Grafana
 
-- [ ] Add seeder + migration for DB via Prisma
-  - [ ] Seed data for development
+- [x] Add seeder + migration for DB via Prisma
+  - [x] Seed data for development
 
 - [ ] Add Internationalization with i18n
 - [ ] Add File upload with Cloudinary (no local upload)
