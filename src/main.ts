@@ -5,11 +5,14 @@ import { setupGracefulShutdown } from 'nestjs-graceful-shutdown';
 import { ConfigService } from '@nestjs/config';
 import { ValidationPipe } from '@nestjs/common';
 import { GlobalConfig } from '@/config/config.type';
+import { LoggerService } from '@/shared/logger/logger.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   const configService = app.get(ConfigService<GlobalConfig>);
   const env = configService.getOrThrow('app.nodeEnv', { infer: true });
+
+  app.useLogger(app.get(LoggerService));
 
   app.use(helmet());
 
