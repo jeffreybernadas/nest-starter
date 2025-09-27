@@ -71,15 +71,15 @@
 - [ ] Worker server for processing background tasks like queues
   - Add example of sending emails regarding unread chats every 8 pm of the day (PH time)
 
-- [ ] Email template with React Email and Resend for sending emails
+- [x] Email template with React Email and Resend for sending emails
   - [ ] Reply to chat message email template (worker server task)
 
 - [ ] Caching and rate limiting with Redis
   - [ ] One endpoint rate limiting with customizable rate limiters
   - [ ] Global rate limiting
-  - [ ] Caching of endpoints (all)
+  - [x] Caching of endpoints (all)
 
-- [ ] Logging with Winston & Elasticsearch (w/ APM)
+- [x] Logging with Winston & Elasticsearch (w/ APM)
 
 - [x] Graceful Shutdown
 
@@ -91,6 +91,6 @@
 - [ ] Add Internationalization with i18n
 - [ ] Add File upload with Cloudinary (no local upload)
 - [ ] Docker compose for services
-- [ ] Commitlint and Husky
+- [x] Commitlint and Husky
 - [ ] Sentry
 - [ ] Nest.js best practices are utilized
