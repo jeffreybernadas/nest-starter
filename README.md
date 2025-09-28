@@ -30,7 +30,7 @@
   - [x] PostgreSQL
   - [ ] MongoDB
   - [ ] MySQL
-- [ ] API Versioning
+- [x] API Versioning
 - [ ] Keycloak Auth - decrypting of token and getting user info with endpoints for:
   - [ ] GET /api/v1/user/profile - Get user profile
   - [ ] PUT /api/v1/user/profile - Update profile information
@@ -53,8 +53,11 @@
   - [x] EXTERNAL_SERVICE_ERROR
   - [x] THIRD_PARTY_API_ERROR
 - [ ] REST & WebSocket API
-- [ ] Offset and Cursor based Pagination
-- [ ] Custom response format
+- [x] Offset and Cursor based Pagination
+- [x] Custom response format
+  - [x] Add meta if paginated
+  - [x] Do not add meta if not paginated
+  - [x] Show proper response to errors
 - [ ] Websocket using Socket.io via Redis Adapter and add chatting functionality
   - [ ] POST /api/v1/chat - Create a new chat (group chat)
   - [ ] GET /api/v1/chat - List chats user belongs to
@@ -64,7 +67,7 @@
   - [ ] PUT /api/v1/chat/:chatId/messages/:messageId - Update message (only if <10 min old & sender = user)
   - [ ] DELETE /api/v1/chat/:chatId/messages/:messageId - Delete message (only if <10 min old & sender = user)
 
-- [ ] Swagger Documentation and API versioning for REST API
+- [x] Swagger Documentation and API versioning for REST API
 - [ ] Add RabbitMQ for message queues. Add example during user first login welcoming them.
   - Not sure how to do this since registration and auth is done with keycloak
   - Maybe an email after they create a group chat?
