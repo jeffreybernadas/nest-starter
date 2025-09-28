@@ -8,7 +8,8 @@ import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
 import * as redisStore from 'cache-manager-redis-store';
 import { CacheService } from '@/shared/cache/cache.service';
 import { LoggerService } from '@/shared/logger/logger.service';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import redisConfig from '@/config/redis/redis.config';
 import elasticsearchConfig from '@/config/elasticsearch/elasticsearch.config';
 import { ApmInit } from '@/utils/apm/apm.util';
@@ -16,6 +17,8 @@ import { ElasticInit } from '@/utils/elasticsearch/elasticsearch.util';
 import { LoggerModule } from '@/shared/logger/logger.module';
 import { ResendModule } from '@/shared/mail/resend.module';
 import resendConfig from '@/config/resend/resend.config';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 
 @Module({
   imports: [
@@ -27,6 +30,21 @@ import resendConfig from '@/config/resend/resend.config';
     DatabaseModule,
     ApiModule,
     LoggerModule,
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        return {
+          throttlers: [
+            {
+              ttl: 60000,
+              limit: 150,
+            },
+          ],
+          storage: new ThrottlerStorageRedisService(config.get('redis.url')),
+        };
+      },
+    }),
     GracefulShutdownModule.forRoot({
       cleanup: (...args) => {
         console.log('App shutting down...', args);
@@ -34,6 +52,7 @@ import resendConfig from '@/config/resend/resend.config';
     }),
     CacheModule.registerAsync({
       imports: [ConfigModule],
+      inject: [ConfigService],
       useFactory: (config: ConfigService) => {
         return {
           store: redisStore,
@@ -45,20 +64,23 @@ import resendConfig from '@/config/resend/resend.config';
           no_read_check: true,
         };
       },
-      inject: [ConfigService],
     }),
     ResendModule.forRootAsync({
       imports: [ConfigModule],
+      inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         apiKey: config.get('resend.apiKey') as string,
       }),
-      inject: [ConfigService],
     }),
   ],
   providers: [
     {
       provide: APP_INTERCEPTOR,
       useClass: CacheInterceptor,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
     CacheService,
     LoggerService,

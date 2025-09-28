@@ -15,6 +15,10 @@ import { RedisConfig } from './redis-config.type';
 class EnvironmentVariablesValidator {
   @IsString()
   @IsNotEmpty()
+  REDIS_URL: string;
+
+  @IsString()
+  @IsNotEmpty()
   REDIS_HOST: string;
 
   @IsInt()
@@ -34,6 +38,7 @@ class EnvironmentVariablesValidator {
 
 export function getConfig(): RedisConfig {
   return {
+    url: process.env.REDIS_URL as string,
     host: process.env.REDIS_HOST,
     port: parseInt(process.env.REDIS_PORT as string, 10),
     username: process.env.REDIS_USERNAME,

@@ -74,9 +74,9 @@
 - [x] Email template with React Email and Resend for sending emails
   - [ ] Reply to chat message email template (worker server task)
 
-- [ ] Caching and rate limiting with Redis
-  - [ ] One endpoint rate limiting with customizable rate limiters
-  - [ ] Global rate limiting
+- [x] Caching and rate limiting with Redis
+  - [x] One endpoint rate limiting with customizable rate limiters
+  - [x] Global rate limiting
   - [x] Caching of endpoints (all)
 
 - [x] Logging with Winston & Elasticsearch (w/ APM)
