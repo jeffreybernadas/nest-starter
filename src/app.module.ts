@@ -8,7 +8,7 @@ import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
 import * as redisStore from 'cache-manager-redis-store';
 import { CacheService } from '@/shared/cache/cache.service';
 import { LoggerService } from '@/shared/logger/logger.service';
-import { APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
+import { APP_INTERCEPTOR, APP_GUARD, APP_FILTER } from '@nestjs/core';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import redisConfig from '@/config/redis/redis.config';
 import elasticsearchConfig from '@/config/elasticsearch/elasticsearch.config';
@@ -19,6 +19,7 @@ import { ResendModule } from '@/shared/mail/resend.module';
 import resendConfig from '@/config/resend/resend.config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
+import { ExceptionsFilter } from '@/filters/exceptions.filter';
 
 @Module({
   imports: [
@@ -81,6 +82,10 @@ import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis'
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: ExceptionsFilter,
     },
     CacheService,
     LoggerService,

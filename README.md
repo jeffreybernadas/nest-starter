@@ -44,13 +44,14 @@
   - [ ] DELETE /api/v1/user/sessions/:sessionId - Logout specific session
   - [ ] POST /api/v1/user/logout-other-sessions - Logout all sessions except current
 - [ ] Protect routes with RBAC and Auth
-- [ ] Custom Error handling with Custom Errors such as:
-  - [ ] OTP_REQUIRED
-  - [ ] INVALID_OTP
-  - [ ] INVALID_CREDENTIALS
-  - [ ] USER_NOT_FOUND
-  - [ ] USER_ALREADY_EXISTS
-  - [ ] etc
+- [x] Custom Error handling with Custom Errors such as:
+  - [x] GENERIC_ERROR
+  - [x] VALIDATION_ERROR
+  - [x] OTP_REQUIRED
+  - [x] INVALID_OTP
+  - [x] OTP_EXPIRED
+  - [x] EXTERNAL_SERVICE_ERROR
+  - [x] THIRD_PARTY_API_ERROR
 - [ ] REST & WebSocket API
 - [ ] Offset and Cursor based Pagination
 - [ ] Custom response format
