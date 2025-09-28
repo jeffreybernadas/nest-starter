@@ -8,6 +8,7 @@ import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from 'express';
+import { CustomErrorException } from '@/filters/exceptions/custom-error.exception';
 
 @Catch()
 export class ExceptionsFilter<T> implements ExceptionFilter {
@@ -15,34 +16,49 @@ export class ExceptionsFilter<T> implements ExceptionFilter {
     const request = host.switchToHttp().getRequest<ExpressRequest>();
     const response = host.switchToHttp().getResponse<ExpressResponse>();
 
-    const isHttpException = exception instanceof HttpException;
-    const statusCode = isHttpException ? exception.getStatus() : 500;
-
-    const exceptionResponse = isHttpException
-      ? exception.getResponse()
-      : 'error';
-
+    let statusCode: number;
     let message: string;
     let customCode: string;
 
-    if (typeof exceptionResponse === 'string') {
-      message = exceptionResponse;
-      customCode = 'GENERIC_ERROR';
-    } else if (exceptionResponse && typeof exceptionResponse === 'object') {
-      const responseObj = exceptionResponse as Record<string, unknown>;
-      message = (responseObj.message as string) || 'An error occurred';
-      customCode = (responseObj.customCode as string) || 'GENERIC_ERROR';
+    // Handle CustomErrorException specifically
+    if (exception instanceof CustomErrorException) {
+      const customException = exception as CustomErrorException;
+      statusCode = customException.getStatus();
+      message = customException.message;
+      customCode = customException.getCustomCode();
+    } else if (exception instanceof HttpException) {
+      // Handle other HttpExceptions
+      const httpException = exception as HttpException;
+      statusCode = httpException.getStatus();
+      const exceptionResponse = httpException.getResponse();
+
+      if (typeof exceptionResponse === 'string') {
+        message = exceptionResponse;
+        customCode = 'GENERIC_ERROR';
+      } else if (exceptionResponse && typeof exceptionResponse === 'object') {
+        const responseObj = exceptionResponse as Record<string, unknown>;
+        message = (responseObj.message as string) || 'An error occurred';
+        customCode = (responseObj.customCode as string) || 'GENERIC_ERROR';
+      } else {
+        message = 'An error occurred';
+        customCode = 'GENERIC_ERROR';
+      }
     } else {
-      message = isHttpException ? 'An error occurred' : 'Internal server error';
+      // Handle non-HTTP exceptions
+      statusCode = 500;
+      message = 'Internal server error';
       customCode = 'GENERIC_ERROR';
     }
 
     response.status(statusCode).json({
-      message,
+      success: false,
       statusCode,
-      code: customCode,
-      timeStamp: new Date().toISOString(),
       path: request.url,
+      timestamp: new Date().toISOString(),
+      error: {
+        code: customCode,
+        message,
+      },
     });
   }
 }

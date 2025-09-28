@@ -8,11 +8,18 @@ import { HttpException, HttpStatus } from '@nestjs/common';
  * @param customCode - Custom error code
  */
 export class CustomErrorException extends HttpException {
+  private readonly customCode: CustomErrorCode;
+
   constructor(
     message: string,
     statusCode: HttpStatus,
-    customCode?: CustomErrorCode,
+    customCode: CustomErrorCode = CustomErrorCode.GENERIC_ERROR,
   ) {
     super({ message, customCode }, statusCode);
+    this.customCode = customCode;
+  }
+
+  getCustomCode(): CustomErrorCode {
+    return this.customCode;
   }
 }
