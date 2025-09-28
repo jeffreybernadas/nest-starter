@@ -20,6 +20,7 @@ import resendConfig from '@/config/resend/resend.config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { ExceptionsFilter } from '@/filters/exceptions.filter';
+import { TransformResponseInterceptor } from '@/interceptors/transform-response.interceptor';
 
 @Module({
   imports: [
@@ -75,6 +76,10 @@ import { ExceptionsFilter } from '@/filters/exceptions.filter';
     }),
   ],
   providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TransformResponseInterceptor,
+    },
     {
       provide: APP_INTERCEPTOR,
       useClass: CacheInterceptor,
