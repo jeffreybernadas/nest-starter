@@ -1,4 +1,4 @@
-import { TestEmailTemplateProps } from '@/interfaces/email.interface';
+import { TestEmailTemplateProps } from '@/common/interfaces/email.interface';
 import {
   Button,
   Html,

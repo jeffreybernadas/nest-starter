@@ -7,7 +7,7 @@ import {
 } from 'resend';
 
 import { RESEND_CONFIGURATION_OPTIONS } from '@/constants/resend.constant';
-import { ResendOptions } from '@/interfaces/resend.interface';
+import { ResendOptions } from '@/common/interfaces/resend.interface';
 
 @Injectable()
 export class ResendService extends Resend {

@@ -2,7 +2,7 @@ import { DynamicModule, Global, Module } from '@nestjs/common';
 import {
   ResendOptions,
   ResendOptionsAsync,
-} from '@/interfaces/resend.interface';
+} from '@/common/interfaces/resend.interface';
 import { RESEND_CONFIGURATION_OPTIONS } from '@/constants/resend.constant';
 import { ResendService } from './resend.service';
 

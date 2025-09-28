@@ -1,6 +1,6 @@
 import { render } from '@react-email/components';
 import { TestEmailTemplate } from '@/shared/mail/templates/test-email';
-import { TestEmailTemplateProps } from '@/interfaces/email.interface';
+import { TestEmailTemplateProps } from '@/common/interfaces/email.interface';
 
 export class EmailRenderer {
   /**
