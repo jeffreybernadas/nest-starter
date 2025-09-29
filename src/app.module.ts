@@ -21,13 +21,21 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { ExceptionsFilter } from '@/filters/exceptions.filter';
 import { TransformResponseInterceptor } from '@/interceptors/transform-response.interceptor';
+import minioConfig from '@/config/minio/minio.config';
+import { NestMinioModule } from '@/shared/storage/minio.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env'],
-      load: [appConfig, redisConfig, elasticsearchConfig, resendConfig],
+      load: [
+        appConfig,
+        redisConfig,
+        elasticsearchConfig,
+        resendConfig,
+        minioConfig,
+      ],
     }),
     DatabaseModule,
     ApiModule,
@@ -72,6 +80,17 @@ import { TransformResponseInterceptor } from '@/interceptors/transform-response.
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         apiKey: config.get('resend.apiKey') as string,
+      }),
+    }),
+    NestMinioModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        endPoint: config.get('minio.url') as string,
+        port: 443,
+        useSSL: true,
+        accessKey: config.get('minio.accessKey') as string,
+        secretKey: config.get('minio.secretKey') as string,
       }),
     }),
   ],

@@ -46,6 +46,7 @@ async function bootstrap() {
       .setVersion('1.0')
       .addTag('health', 'Health check endpoints')
       .addTag('users', 'User management endpoints')
+      .addTag('upload', 'File management endpoints')
       .addServer('http://localhost:3000', 'Development')
       .build();
 

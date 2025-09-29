@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable, LoggerService as NestLogger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Logger, createLogger, format, transports } from 'winston';
