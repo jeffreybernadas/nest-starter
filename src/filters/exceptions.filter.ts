@@ -9,6 +9,7 @@ import {
   Response as ExpressResponse,
 } from 'express';
 import { CustomErrorException } from '@/filters/exceptions/custom-error.exception';
+import { Prisma } from '@prisma/client';
 
 @Catch()
 export class ExceptionsFilter<T> implements ExceptionFilter {
@@ -20,8 +21,28 @@ export class ExceptionsFilter<T> implements ExceptionFilter {
     let message: string;
     let customCode: string;
 
+    // Handle Prisma Known Request Errors
+    if (exception instanceof Prisma.PrismaClientKnownRequestError) {
+      switch (exception.code) {
+        case 'P2002': // Unique constraint violation
+          statusCode = 409;
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+          message = `Unique constraint failed on field(s): ${exception.meta?.target}`;
+          customCode = 'UNIQUE_CONSTRAINT_VIOLATION';
+          break;
+        case 'P2025': // Record not found
+          statusCode = 404;
+          message = `Record not found`;
+          customCode = 'RECORD_NOT_FOUND';
+          break;
+        default:
+          statusCode = 400;
+          message = `Database error: ${exception.message}`;
+          customCode = 'PRISMA_ERROR';
+      }
+    }
     // Handle CustomErrorException specifically
-    if (exception instanceof CustomErrorException) {
+    else if (exception instanceof CustomErrorException) {
       const customException = exception as CustomErrorException;
       statusCode = customException.getStatus();
       message = customException.message;

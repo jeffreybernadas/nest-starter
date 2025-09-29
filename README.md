@@ -25,12 +25,41 @@
 
 ## Features (WIP)
 
+### Completed
+
 - [x] Nest with Express
+- [x] API Versioning
+- [x] Custom Error handling with Custom Errors such as:
+  - [x] GENERIC_ERROR
+  - [x] VALIDATION_ERROR
+  - [x] OTP_REQUIRED
+  - [x] INVALID_OTP
+  - [x] OTP_EXPIRED
+  - [x] EXTERNAL_SERVICE_ERROR
+  - [x] THIRD_PARTY_API_ERROR
+- [x] Offset and Cursor based Pagination
+- [x] Custom response format
+  - [x] Add meta if paginated
+  - [x] Do not add meta if not paginated
+  - [x] Show proper response to errors
+- [x] Swagger Documentation and API versioning for REST API
+- [x] Caching and rate limiting with Redis
+  - [x] One endpoint rate limiting with customizable rate limiters
+  - [x] Global rate limiting
+  - [x] Caching of endpoints (all)
+- [x] Logging with Winston & Elasticsearch (w/ APM)
+- [x] Graceful Shutdown
+- [x] Add seeder + migration for DB via Prisma
+  - [x] Seed data for development
+- [x] Add File upload with Minio (no local upload)
+- [x] Commitlint and Husky
+
+### In Progress
+
 - [ ] Multiple DB connections with Prisma:
   - [x] PostgreSQL
   - [ ] MongoDB
   - [ ] MySQL
-- [x] API Versioning
 - [ ] Keycloak Auth - decrypting of token and getting user info with endpoints for:
   - [ ] GET /api/v1/user/profile - Get user profile
   - [ ] PUT /api/v1/user/profile - Update profile information
@@ -44,20 +73,12 @@
   - [ ] DELETE /api/v1/user/sessions/:sessionId - Logout specific session
   - [ ] POST /api/v1/user/logout-other-sessions - Logout all sessions except current
 - [ ] Protect routes with RBAC and Auth
-- [x] Custom Error handling with Custom Errors such as:
-  - [x] GENERIC_ERROR
-  - [x] VALIDATION_ERROR
-  - [x] OTP_REQUIRED
-  - [x] INVALID_OTP
-  - [x] OTP_EXPIRED
-  - [x] EXTERNAL_SERVICE_ERROR
-  - [x] THIRD_PARTY_API_ERROR
 - [ ] REST & WebSocket API
-- [x] Offset and Cursor based Pagination
-- [x] Custom response format
-  - [x] Add meta if paginated
-  - [x] Do not add meta if not paginated
-  - [x] Show proper response to errors
+- [ ] Add RabbitMQ for message queues. Add example during user first login welcoming them.
+  - Not sure how to do this since registration and auth is done with keycloak
+  - Maybe an email after they create a group chat?
+- [ ] Worker server for processing background tasks like queues
+  - Add example of sending emails regarding unread chats every 8 pm of the day (PH time)
 - [ ] Websocket using Socket.io via Redis Adapter and add chatting functionality
   - [ ] POST /api/v1/chat - Create a new chat (group chat)
   - [ ] GET /api/v1/chat - List chats user belongs to
@@ -66,35 +87,13 @@
   - [ ] POST /api/v1/chat/:chatId/messages - Send a new message
   - [ ] PUT /api/v1/chat/:chatId/messages/:messageId - Update message (only if <10 min old & sender = user)
   - [ ] DELETE /api/v1/chat/:chatId/messages/:messageId - Delete message (only if <10 min old & sender = user)
-
-- [x] Swagger Documentation and API versioning for REST API
-- [ ] Add RabbitMQ for message queues. Add example during user first login welcoming them.
-  - Not sure how to do this since registration and auth is done with keycloak
-  - Maybe an email after they create a group chat?
-
-- [ ] Worker server for processing background tasks like queues
-  - Add example of sending emails regarding unread chats every 8 pm of the day (PH time)
-
 - [x] Email template with React Email and Resend for sending emails
   - [ ] Reply to chat message email template (worker server task)
-
-- [x] Caching and rate limiting with Redis
-  - [x] One endpoint rate limiting with customizable rate limiters
-  - [x] Global rate limiting
-  - [x] Caching of endpoints (all)
-
-- [x] Logging with Winston & Elasticsearch (w/ APM)
-
-- [x] Graceful Shutdown
-
 - [ ] Server & Database monitoring with Prometheus & Grafana
-
-- [x] Add seeder + migration for DB via Prisma
-  - [x] Seed data for development
-
 - [ ] Add Internationalization with i18n
-- [ ] Add File upload with Cloudinary (no local upload)
 - [ ] Docker compose for services
-- [x] Commitlint and Husky
 - [ ] Sentry
 - [ ] Nest.js best practices are utilized
+
+## Issues
+- Error response with Prisma is not detailed enough.
