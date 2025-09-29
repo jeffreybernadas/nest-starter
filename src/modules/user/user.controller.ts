@@ -5,8 +5,7 @@ import {
   ApiStandardErrorResponse,
 } from '@/decorators/swagger.decorator';
 import { UserService } from '@/modules/user/user.service';
-import { UserDto } from '@/modules/user/dto/user.dto';
-import { TestUserDto } from '@/modules/user/dto/test-user.dto';
+import { UserDto } from './dto/user.dto';
 import {
   ApiCursorPaginatedResponse,
   ApiPaginatedResponse,
@@ -19,6 +18,7 @@ import {
   CursorPageOptionsDto,
   CursorPaginatedDto,
 } from '@/common/dto/cursor-pagination';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @ApiTags('users')
 @Controller({
@@ -27,6 +27,33 @@ import {
 })
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  @Post('/')
+  @ApiOperation({
+    summary: 'Create a new user',
+    description: 'Creates a new user in the database.',
+  })
+  @ApiStandardResponse({
+    status: 201,
+    description: 'Created',
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', example: '123' },
+        email: { type: 'string', example: 'user@example.com' },
+        createdAt: { type: 'string', example: '2025-09-28T16:30:00.000Z' },
+        updatedAt: { type: 'string', example: '2025-09-28T16:30:00.000Z' },
+      },
+    },
+  })
+  @ApiStandardErrorResponse({
+    status: 400,
+    description: 'Validation Error',
+    errorCode: 'GENERIC_ERROR',
+  })
+  createUser(@Body() dto: CreateUserDto) {
+    return this.userService.createUser(dto);
+  }
 
   @Get('/offset')
   @ApiOperation({
@@ -96,43 +123,5 @@ export class UserController {
   })
   async getUserById(@Param('id') id: string): Promise<UserDto | null> {
     return this.userService.findUserById(id);
-  }
-
-  @Post('/test')
-  @ApiOperation({
-    summary: 'Test endpoint for standard response format',
-    description:
-      'Demonstrates the new standard response decorator with DTO validation',
-  })
-  @ApiStandardResponse({
-    status: 201,
-    description: 'Test response',
-    schema: {
-      type: 'object',
-      properties: {
-        message: { type: 'string', example: 'Hello John!' },
-        timestamp: { type: 'string', example: '2025-09-28T16:30:00.000Z' },
-        userId: { type: 'string', example: '123' },
-        receivedData: {
-          type: 'object',
-          properties: {
-            name: { type: 'string', example: 'John' },
-          },
-        },
-      },
-    },
-  })
-  @ApiStandardErrorResponse({
-    status: 400,
-    description: 'Validation Error',
-    errorCode: 'VALIDATION_ERROR',
-  })
-  testEndpoint(@Body() testUserDto: TestUserDto) {
-    return {
-      message: `Hello ${testUserDto.name || 'World'}!`,
-      timestamp: new Date().toISOString(),
-      userId: '123',
-      receivedData: testUserDto,
-    };
   }
 }

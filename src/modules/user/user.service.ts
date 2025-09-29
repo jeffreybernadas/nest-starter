@@ -14,10 +14,17 @@ import {
   CursorPageOptionsDto,
   CursorPaginatedDto,
 } from '@/common/dto/cursor-pagination';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UserService {
   constructor(private readonly prisma: PrismaService) {}
+
+  createUser(dto: CreateUserDto): Promise<UserDto> {
+    return this.prisma.user.create({
+      data: dto,
+    });
+  }
 
   findAllUsers(
     pageOptionsDto: OffsetPageOptionsDto,
