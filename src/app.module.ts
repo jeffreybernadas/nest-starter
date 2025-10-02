@@ -9,7 +9,6 @@ import * as redisStore from 'cache-manager-redis-store';
 import { CacheService } from '@/shared/cache/cache.service';
 import { LoggerService } from '@/shared/logger/logger.service';
 import { APP_INTERCEPTOR, APP_GUARD, APP_FILTER } from '@nestjs/core';
-import { ThrottlerGuard } from '@nestjs/throttler';
 import redisConfig from '@/config/redis/redis.config';
 import elasticsearchConfig from '@/config/elasticsearch/elasticsearch.config';
 import { ApmInit } from '@/utils/apm/apm.util';
@@ -23,6 +22,9 @@ import { ExceptionsFilter } from '@/filters/exceptions.filter';
 import { TransformResponseInterceptor } from '@/interceptors/transform-response.interceptor';
 import minioConfig from '@/config/minio/minio.config';
 import { NestMinioModule } from '@/shared/storage/minio.module';
+import websocketConfig from '@/config/websocket/websocket.config';
+import { WebSocketModule } from '@/shared/websocket/websocket.module';
+import { UnifiedThrottlerGuard } from '@/shared/guards/unified-throttler.guard';
 
 @Module({
   imports: [
@@ -35,6 +37,7 @@ import { NestMinioModule } from '@/shared/storage/minio.module';
         elasticsearchConfig,
         resendConfig,
         minioConfig,
+        websocketConfig,
       ],
     }),
     DatabaseModule,
@@ -93,6 +96,28 @@ import { NestMinioModule } from '@/shared/storage/minio.module';
         secretKey: config.get('minio.secretKey') as string,
       }),
     }),
+    WebSocketModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        port: config.get('websocket.port') as number,
+        path: config.get('websocket.path') as string,
+        cors: config.get('websocket.cors') as {
+          origin: string | string[];
+          credentials: boolean;
+        },
+        redis: {
+          host: config.get('redis.host') as string,
+          port: config.get('redis.port') as number,
+          password: config.get('redis.password') as string,
+          username: config.get('redis.username') as string,
+        },
+        pingTimeout: config.get('websocket.pingTimeout') as number,
+        pingInterval: config.get('websocket.pingInterval') as number,
+        maxHttpBufferSize: config.get('websocket.maxHttpBufferSize') as number,
+        transports: config.get('websocket.transports') as string[],
+      }),
+    }),
   ],
   providers: [
     {
@@ -105,7 +130,7 @@ import { NestMinioModule } from '@/shared/storage/minio.module';
     },
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard,
+      useClass: UnifiedThrottlerGuard,
     },
     {
       provide: APP_FILTER,

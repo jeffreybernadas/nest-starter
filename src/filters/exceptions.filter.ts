@@ -4,25 +4,62 @@ import {
   ExceptionFilter,
   HttpException,
 } from '@nestjs/common';
+import { WsException } from '@nestjs/websockets';
 import {
   Request as ExpressRequest,
   Response as ExpressResponse,
 } from 'express';
+import { Socket } from 'socket.io';
 import { CustomErrorException } from '@/filters/exceptions/custom-error.exception';
+import { CustomWsErrorException } from '@/filters/exceptions/websocket-error.exception';
 import { Prisma } from '@prisma/client';
+import { WebSocketErrorResponse } from '@/common/interfaces/websocket.interface';
 
 @Catch()
 export class ExceptionsFilter<T> implements ExceptionFilter {
   catch(exception: T, host: ArgumentsHost): void {
-    const request = host.switchToHttp().getRequest<ExpressRequest>();
-    const response = host.switchToHttp().getResponse<ExpressResponse>();
+    const contextType = host.getType<'http' | 'ws'>();
 
+    // Parse exception to get error details
+    const { statusCode, message, customCode } = this.parseException(exception);
+
+    // Handle based on context type
+    if (contextType === 'ws') {
+      this.handleWebSocketError(host, statusCode, message, customCode);
+    } else {
+      this.handleHttpError(host, statusCode, message, customCode);
+    }
+  }
+
+  /**
+   * Parse exception to extract error details
+   */
+  private parseException(exception: T): {
+    statusCode: number;
+    message: string;
+    customCode: string;
+  } {
     let statusCode: number;
     let message: string;
     let customCode: string;
 
+    // Handle WebSocket-specific exceptions first
+    if (exception instanceof CustomWsErrorException) {
+      const wsException = exception as CustomWsErrorException;
+      statusCode = wsException.getStatusCode();
+      message = wsException.message;
+      customCode = wsException.getCustomCode();
+    }
+    // Handle NestJS WsException
+    else if (exception instanceof WsException) {
+      const wsException = exception as WsException;
+      const error = wsException.getError();
+      statusCode = 400; // Default WebSocket error status
+      message = typeof error === 'string' ? error : 'WebSocket error';
+      customCode = 'WS_ERROR';
+    }
     // Handle Prisma Known Request Errors
-    if (exception instanceof Prisma.PrismaClientKnownRequestError) {
+    else if (exception instanceof Prisma.PrismaClientKnownRequestError) {
       switch (exception.code) {
         case 'P2002': // Unique constraint violation
           statusCode = 409;
@@ -71,6 +108,21 @@ export class ExceptionsFilter<T> implements ExceptionFilter {
       customCode = 'GENERIC_ERROR';
     }
 
+    return { statusCode, message, customCode };
+  }
+
+  /**
+   * Handle HTTP error response
+   */
+  private handleHttpError(
+    host: ArgumentsHost,
+    statusCode: number,
+    message: string,
+    customCode: string,
+  ): void {
+    const request = host.switchToHttp().getRequest<ExpressRequest>();
+    const response = host.switchToHttp().getResponse<ExpressResponse>();
+
     response.status(statusCode).json({
       success: false,
       statusCode,
@@ -81,5 +133,30 @@ export class ExceptionsFilter<T> implements ExceptionFilter {
         message,
       },
     });
+  }
+
+  /**
+   * Handle WebSocket error response
+   */
+  private handleWebSocketError(
+    host: ArgumentsHost,
+    statusCode: number,
+    message: string,
+    customCode: string,
+  ): void {
+    const client = host.switchToWs().getClient<Socket>();
+
+    const errorResponse: WebSocketErrorResponse = {
+      success: false,
+      statusCode,
+      timestamp: new Date().toISOString(),
+      error: {
+        code: customCode,
+        message,
+      },
+    };
+
+    // Emit error to the specific client
+    client.emit('error', errorResponse);
   }
 }

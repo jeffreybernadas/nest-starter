@@ -8,6 +8,7 @@ import { GlobalConfig } from '@/config/config.type';
 import { LoggerService } from '@/shared/logger/logger.service';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { TransformResponseInterceptor } from '@/interceptors/transform-response.interceptor';
+import { WebSocketRedisAdapter } from '@/shared/websocket/websocket.adapter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
@@ -16,7 +17,21 @@ async function bootstrap() {
 
   app.useLogger(app.get(LoggerService));
 
+  // Enable CORS for both HTTP and WebSocket
+  const corsOrigin = configService.get('websocket.cors.origin', {
+    infer: true,
+  });
+  app.enableCors({
+    origin: corsOrigin,
+    credentials: true,
+  });
+
   app.use(helmet());
+
+  // Setup WebSocket adapter with Redis
+  const wsAdapter = new WebSocketRedisAdapter(app, configService);
+  await wsAdapter.connectToRedis();
+  app.useWebSocketAdapter(wsAdapter);
 
   if (env !== 'local') {
     setupGracefulShutdown({ app });
