@@ -63,6 +63,7 @@
     "ioredis": "^5.8.0",
     "lodash": "^4.17.21",
     "minio": "^8.0.6",
+    "nest-keycloak-connect": "^1.10.1",
     "nestjs-graceful-shutdown": "^1.0.3",
     "react": "19.1.1",
     "react-dom": "19.1.1",

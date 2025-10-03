@@ -14,6 +14,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   const configService = app.get(ConfigService<GlobalConfig>);
   const env = configService.getOrThrow('app.nodeEnv', { infer: true });
+  const port = configService.getOrThrow('app.port', { infer: true });
 
   app.useLogger(app.get(LoggerService));
 
@@ -62,7 +63,7 @@ async function bootstrap() {
       .addTag('health', 'Health check endpoints')
       .addTag('users', 'User management endpoints')
       .addTag('upload', 'File management endpoints')
-      .addServer('http://localhost:3000', 'Development')
+      .addServer(`http://localhost:${port}`, 'Development')
       .build();
 
     const document = SwaggerModule.createDocument(app, config);
@@ -72,7 +73,7 @@ async function bootstrap() {
       },
     });
   }
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(port ?? 3000);
 }
 bootstrap().catch((error) => {
   console.error('Failed to start the application:', error);

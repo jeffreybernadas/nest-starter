@@ -25,6 +25,15 @@ import { NestMinioModule } from '@/shared/storage/minio.module';
 import websocketConfig from '@/config/websocket/websocket.config';
 import { WebSocketModule } from '@/shared/websocket/websocket.module';
 import { UnifiedThrottlerGuard } from '@/shared/guards/unified-throttler.guard';
+import {
+  AuthGuard,
+  KeycloakConnectModule,
+  ResourceGuard,
+  RoleGuard,
+} from 'nest-keycloak-connect';
+import { KeycloakConfigService } from '@/shared/keycloak/keycloak.service';
+import { KeycloakModule } from '@/shared/keycloak/keycloak.module';
+import keycloakConfig from '@/config/keycloak/keycloak.config';
 
 @Module({
   imports: [
@@ -38,6 +47,7 @@ import { UnifiedThrottlerGuard } from '@/shared/guards/unified-throttler.guard';
         resendConfig,
         minioConfig,
         websocketConfig,
+        keycloakConfig,
       ],
     }),
     DatabaseModule,
@@ -96,6 +106,10 @@ import { UnifiedThrottlerGuard } from '@/shared/guards/unified-throttler.guard';
         secretKey: config.get('minio.secretKey') as string,
       }),
     }),
+    KeycloakConnectModule.registerAsync({
+      useExisting: KeycloakConfigService,
+      imports: [KeycloakModule],
+    }),
     WebSocketModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -135,6 +149,18 @@ import { UnifiedThrottlerGuard } from '@/shared/guards/unified-throttler.guard';
     {
       provide: APP_FILTER,
       useClass: ExceptionsFilter,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ResourceGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RoleGuard,
     },
     CacheService,
     LoggerService,
