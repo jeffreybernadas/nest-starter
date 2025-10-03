@@ -64,6 +64,17 @@ async function bootstrap() {
       .addTag('users', 'User management endpoints')
       .addTag('upload', 'File management endpoints')
       .addServer(`http://localhost:${port}`, 'Development')
+      .addBearerAuth(
+        {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          name: 'JWT',
+          description: 'Enter JWT token',
+          in: 'header',
+        },
+        'JWT',
+      )
       .build();
 
     const document = SwaggerModule.createDocument(app, config);

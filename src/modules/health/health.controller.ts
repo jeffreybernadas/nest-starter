@@ -8,6 +8,7 @@ import {
   MemoryHealthIndicator,
 } from '@nestjs/terminus';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { Public } from 'nest-keycloak-connect';
 
 @ApiTags('health')
 @Controller({
@@ -24,6 +25,7 @@ export class HealthController {
   ) {}
 
   @Get()
+  @Public()
   @HealthCheck()
   @ApiOperation({ summary: 'Health check endpoint' })
   async check() {

@@ -148,10 +148,10 @@ export function ApiStandardResponse(options: StandardApiResponseOptions = {}) {
     if (isArray) {
       dataSchema = {
         type: 'array',
-        items: { $ref: `#/components/schemas/${type.name}` },
+        items: { $ref: getSchemaPath(type) },
       };
     } else {
-      dataSchema = { $ref: `#/components/schemas/${type.name}` };
+      dataSchema = { $ref: getSchemaPath(type) };
     }
   } else {
     // Default to generic object
@@ -183,13 +183,20 @@ export function ApiStandardResponse(options: StandardApiResponseOptions = {}) {
     required: ['success', 'statusCode', 'path', 'timestamp'],
   };
 
-  return applyDecorators(
+  const decorators = [
     ApiResponse({
       status,
       description,
       schema: responseSchema,
     }),
-  );
+  ];
+
+  // Register the type with Swagger if provided
+  if (type) {
+    decorators.unshift(ApiExtraModels(type));
+  }
+
+  return applyDecorators(...decorators);
 }
 
 /**

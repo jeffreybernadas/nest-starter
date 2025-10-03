@@ -7,7 +7,13 @@ import {
   UploadedFiles,
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
-import { ApiTags, ApiConsumes, ApiBody, ApiOperation } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiConsumes,
+  ApiBody,
+  ApiOperation,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { FileService } from './file.service';
 import { SingleUploadDto, MultipleUploadDto } from './dto/upload.dto';
 import {
@@ -16,6 +22,7 @@ import {
 } from '@/decorators/swagger.decorator';
 
 @ApiTags('upload')
+@ApiBearerAuth('JWT')
 @Controller({
   path: 'upload',
   version: '1',
