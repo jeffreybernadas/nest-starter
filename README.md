@@ -42,7 +42,7 @@
   - [x] Add meta if paginated
   - [x] Do not add meta if not paginated
   - [x] Show proper response to errors
-- [x] Keycloak Auth - decrypting of token and getting user info with endpoints for:
+- [x] Keycloak (nest-keycloak-connect) - decrypting of token and getting user info with endpoints for:
   - [x] GET /api/v1/user/profile - Get user profile
         The following will not be added and will be handled by Keycloak UI:
   - [x] PUT /api/v1/user/profile - Update profile information
@@ -75,7 +75,7 @@
   - [ ] MongoDB
   - [ ] MySQL
 - [ ] REST & WebSocket API
-- [ ] Add RabbitMQ for message queues. Add example during user first login welcoming them.
+- [x] Add RabbitMQ (@golevelup/nestjs-rabbitmq) for message queues. Add example during user first login welcoming them.
   - Not sure how to do this since registration and auth is done with keycloak
   - Maybe an email after they create a group chat?
 - [ ] Worker server for processing background tasks like queues
@@ -90,7 +90,7 @@
   - [ ] DELETE /api/v1/chat/:chatId/messages/:messageId - Delete message (only if <10 min old & sender = user)
 - [x] Email template with React Email and Resend for sending emails
   - [ ] Reply to chat message email template (worker server task)
-- [ ] Server & Database monitoring with Prometheus & Grafana
+- [ ] Stripe API (@golevelup/nestjs-stripe stripe)
 - [ ] Add Internationalization with i18n
 - [ ] Docker compose for services
 - [ ] Sentry

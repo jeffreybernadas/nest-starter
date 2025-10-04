@@ -34,6 +34,8 @@ import {
 import { KeycloakConfigService } from '@/shared/keycloak/keycloak.service';
 import { KeycloakModule } from '@/shared/keycloak/keycloak.module';
 import keycloakConfig from '@/config/keycloak/keycloak.config';
+import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
+import rabbitmqConfig from '@/config/rabbitmq/rabbitmq.config';
 
 @Module({
   imports: [
@@ -48,6 +50,7 @@ import keycloakConfig from '@/config/keycloak/keycloak.config';
         minioConfig,
         websocketConfig,
         keycloakConfig,
+        rabbitmqConfig,
       ],
     }),
     DatabaseModule,
@@ -109,6 +112,20 @@ import keycloakConfig from '@/config/keycloak/keycloak.config';
     KeycloakConnectModule.registerAsync({
       useExisting: KeycloakConfigService,
       imports: [KeycloakModule],
+    }),
+    RabbitMQModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        uri: config.get('rabbitmq.uri') as string,
+        exchanges: [
+          {
+            name: 'exchange1',
+            type: 'topic',
+          },
+        ],
+        connectionInitOptions: { wait: false },
+      }),
     }),
     WebSocketModule.forRootAsync({
       imports: [ConfigModule],
