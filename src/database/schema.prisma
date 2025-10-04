@@ -14,10 +14,55 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id    String @id @default(uuid())
-  email String @unique
+enum ChatType {
+  DIRECT
+  GROUP
+}
+
+model Chat {
+  id        String   @id @default(uuid())
+  name      String?  // Optional for direct chats, required for group chats
+  type      ChatType @default(GROUP)
+  creatorId String   // Keycloak user ID
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  members  ChatMember[]
+  messages Message[]
+
+  @@index([type])
+  @@index([createdAt])
+  @@index([creatorId])
+}
+
+model ChatMember {
+  id     String @id @default(uuid())
+  chatId String
+  userId String // Keycloak user ID
+
+  joinedAt DateTime @default(now())
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@unique([chatId, userId])
+  @@index([userId])
+  @@index([chatId])
+}
+
+model Message {
+  id        String  @id @default(uuid())
+  chatId    String
+  senderId  String  // Keycloak user ID
+  content   String  @db.Text
+  isEdited  Boolean @default(false)
+  isDeleted Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@index([chatId, createdAt])
+  @@index([senderId])
 }

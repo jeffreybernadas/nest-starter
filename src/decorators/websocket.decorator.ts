@@ -1,14 +1,5 @@
-import { applyDecorators, UseGuards } from '@nestjs/common';
+import { applyDecorators } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import { WebSocketAuthGuard } from '@/shared/websocket/guards/websocket-auth.guard';
-
-/**
- * Decorator to apply authentication guard to WebSocket event handlers
- * Usage: @WsAuthenticated()
- */
-export const WsAuthenticated = () => {
-  return applyDecorators(UseGuards(WebSocketAuthGuard));
-};
 
 /**
  * Decorator to apply custom rate limiting to WebSocket event handlers
@@ -38,7 +29,7 @@ export const WsProtected = (throttleOptions?: {
   ttl: number;
   limit: number;
 }) => {
-  const decorators = [UseGuards(WebSocketAuthGuard)];
+  const decorators = [];
 
   if (throttleOptions) {
     decorators.push(Throttle({ default: throttleOptions }));
