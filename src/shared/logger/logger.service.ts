@@ -62,13 +62,18 @@ export class LoggerService implements NestLogger {
     });
   }
 
-  log(message: string, context?: string, meta?: any) {
+  log(message: string, context?: string | object, meta?: any) {
     this.logger.info(message, { context, meta });
   }
-  error(message: string, trace?: string, context?: string, meta?: any) {
+  error(
+    message: string,
+    trace?: string,
+    context?: string | object,
+    meta?: any,
+  ) {
     this.logger.error(message, { trace, context, meta });
   }
-  warn(message: string, context?: string, meta?: any) {
+  warn(message: string, context?: string | object, meta?: any) {
     this.logger.warn(message, { context, meta });
   }
 }

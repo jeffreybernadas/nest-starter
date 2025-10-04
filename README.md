@@ -42,6 +42,20 @@
   - [x] Add meta if paginated
   - [x] Do not add meta if not paginated
   - [x] Show proper response to errors
+- [x] Keycloak Auth - decrypting of token and getting user info with endpoints for:
+  - [x] GET /api/v1/user/profile - Get user profile
+        The following will not be added and will be handled by Keycloak UI:
+  - [x] PUT /api/v1/user/profile - Update profile information
+  - [x] PUT /api/v1/user/password - Change password
+  - [x] GET /api/v1/user/account-info - Complete account overview with roles
+  - [x] GET /api/v1/user/sessions - View active sessions
+  - [x] POST /api/v1/user/logout-all-sessions - Logout from all sessions
+  - [x] POST /api/v1/user/send-verification-email - Send email verification
+  - [x] POST /api/v1/user/send-password-reset-email - Trigger password reset
+  - [x] GET /api/v1/user/sessions/current - Get current session details
+  - [x] DELETE /api/v1/user/sessions/:sessionId - Logout specific session
+  - [x] POST /api/v1/user/logout-other-sessions - Logout all sessions except current
+- [x] Protect routes with RBAC and Auth
 - [x] Swagger Documentation and API versioning for REST API
 - [x] Caching and rate limiting with Redis
   - [x] One endpoint rate limiting with customizable rate limiters
@@ -60,19 +74,6 @@
   - [x] PostgreSQL
   - [ ] MongoDB
   - [ ] MySQL
-- [ ] Keycloak Auth - decrypting of token and getting user info with endpoints for:
-  - [ ] GET /api/v1/user/profile - Get user profile
-  - [ ] PUT /api/v1/user/profile - Update profile information
-  - [ ] PUT /api/v1/user/password - Change password
-  - [ ] GET /api/v1/user/account-info - Complete account overview with roles
-  - [ ] GET /api/v1/user/sessions - View active sessions
-  - [ ] POST /api/v1/user/logout-all-sessions - Logout from all sessions
-  - [ ] POST /api/v1/user/send-verification-email - Send email verification
-  - [ ] POST /api/v1/user/send-password-reset-email - Trigger password reset
-  - [ ] GET /api/v1/user/sessions/current - Get current session details
-  - [ ] DELETE /api/v1/user/sessions/:sessionId - Logout specific session
-  - [ ] POST /api/v1/user/logout-other-sessions - Logout all sessions except current
-- [ ] Protect routes with RBAC and Auth
 - [ ] REST & WebSocket API
 - [ ] Add RabbitMQ for message queues. Add example during user first login welcoming them.
   - Not sure how to do this since registration and auth is done with keycloak
@@ -96,4 +97,5 @@
 - [ ] Nest.js best practices are utilized
 
 ## Issues
+
 - Error response with Prisma is not detailed enough.

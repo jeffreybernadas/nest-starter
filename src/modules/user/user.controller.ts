@@ -49,7 +49,7 @@ export class UserController {
   @ApiStandardErrorResponse({
     status: 401,
     description: 'Unauthorized - Invalid or missing token',
-    errorCode: 'GENERIC_ERROR',
+    errorCode: 'UNAUTHORIZED',
   })
   getUserProfile(@AuthenticatedUser() user: any): UserProfileDto {
     return {
