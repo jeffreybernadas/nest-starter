@@ -66,7 +66,17 @@
 - [x] Add seeder + migration for DB via Prisma
   - [x] Seed data for development
 - [x] Add File upload with Minio (no local upload)
+- [x] Websocket using Socket.io via Redis Adapter and add chatting functionality
+  - [x] POST /api/v1/chat - Create a new chat (group chat)
+  - [x] GET /api/v1/chat - List chats user belongs to
+  - [x] GET /api/v1/chat/:chatId - Get chat details (users, name, all users, type: group/direct)
+  - [x] GET /api/v1/chat/:chatId/messages - Fetch chat history (with cursor pagination)
+  - [x] POST /api/v1/chat/:chatId/messages - Send a new message
+  - [x] POST /api/v1/chat/:chatId/members - Add a member to a group chat
+  - [x] PUT /api/v1/chat/:chatId/messages/:messageId - Update message (only if <10 min old & sender = user)
+  - [x] DELETE /api/v1/chat/:chatId/messages/:messageId - Delete message (only if <10 min old & sender = user)
 - [x] Commitlint and Husky
+- [x] REST & WebSocket API
 
 ### In Progress
 
@@ -74,21 +84,11 @@
   - [x] PostgreSQL
   - [ ] MongoDB
   - [ ] MySQL
-- [ ] REST & WebSocket API
 - [x] Add RabbitMQ (@golevelup/nestjs-rabbitmq) for message queues. Add example during user first login welcoming them.
   - Not sure how to do this since registration and auth is done with keycloak
   - Maybe an email after they create a group chat?
 - [ ] Worker server for processing background tasks like queues
   - Add example of sending emails regarding unread chats every 8 pm of the day (PH time)
-- [x] Websocket using Socket.io via Redis Adapter and add chatting functionality
-  - [x] POST /api/v1/chat - Create a new chat (group chat)
-  - [x] GET /api/v1/chat - List chats user belongs to
-  - [x] GET /api/v1/chat/:chatId - Get chat details (users, name, all users, type: group/direct)
-  - [ ] GET /api/v1/chat/:chatId/messages - Fetch chat history (with cursor pagination)
-  - [x] POST /api/v1/chat/:chatId/messages - Send a new message
-  - [x] POST /api/v1/chat/:chatId/members - Add a member to a group chat
-  - [ ] PUT /api/v1/chat/:chatId/messages/:messageId - Update message (only if <10 min old & sender = user)
-  - [ ] DELETE /api/v1/chat/:chatId/messages/:messageId - Delete message (only if <10 min old & sender = user)
 - [x] Email template with React Email and Resend for sending emails
   - [ ] Reply to chat message email template (worker server task)
 - [ ] Stripe API (@golevelup/nestjs-stripe stripe)
