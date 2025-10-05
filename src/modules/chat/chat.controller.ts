@@ -1,8 +1,9 @@
-import { Controller, Post, Body, Get, Param } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import {
   ApiStandardResponse,
   ApiStandardErrorResponse,
+  ApiCursorPaginatedResponse,
 } from '@/decorators/swagger.decorator';
 import { AuthenticatedUser } from 'nest-keycloak-connect';
 import { ChatService } from './chat.service';
@@ -13,6 +14,10 @@ import { MessageResponseDto } from './dto/message-response.dto';
 import { AddMemberDto } from './dto/add-member.dto';
 import { WebSocketService } from '@/shared/websocket/websocket.service';
 import { WEBSOCKET_EVENTS } from '@/constants/websocket.constant';
+import {
+  CursorPageOptionsDto,
+  CursorPaginatedDto,
+} from '@/common/dto/cursor-pagination';
 
 @ApiTags('chat')
 @ApiBearerAuth('JWT')
@@ -129,6 +134,41 @@ export class ChatController {
   ): Promise<ChatResponseDto> {
     const userId = user.sub as string;
     return this.chatService.getChatById(chatId, userId);
+  }
+
+  @Get(':chatId/messages')
+  @ApiOperation({
+    summary: 'Fetch chat message history',
+    description:
+      'Retrieves paginated message history for a chat using cursor-based pagination. User must be a member of the chat. Only non-deleted messages are returned. Supports optional search filtering by message content.',
+  })
+  @ApiCursorPaginatedResponse(MessageResponseDto)
+  @ApiStandardErrorResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing token',
+    errorCode: 'UNAUTHORIZED',
+  })
+  @ApiStandardErrorResponse({
+    status: 403,
+    description: 'Forbidden - User is not a member of this chat',
+    errorCode: 'FORBIDDEN',
+  })
+  @ApiStandardErrorResponse({
+    status: 404,
+    description: 'Not Found - Chat does not exist',
+    errorCode: 'NOT_FOUND',
+  })
+  async getChatMessages(
+    @AuthenticatedUser() user: any,
+    @Param('chatId') chatId: string,
+    @Query() cursorPageOptionsDto: CursorPageOptionsDto,
+  ): Promise<CursorPaginatedDto<MessageResponseDto>> {
+    const userId = user.sub as string;
+    return await this.chatService.getChatMessages(
+      chatId,
+      userId,
+      cursorPageOptionsDto,
+    );
   }
 
   @Post(':chatId/messages')

@@ -12,6 +12,12 @@ import { SendMessageDto } from './dto/send-message.dto';
 import { MessageResponseDto } from './dto/message-response.dto';
 import { AddMemberDto } from './dto/add-member.dto';
 import { ChatType } from '@prisma/client';
+import {
+  CursorPageOptionsDto,
+  CursorPaginatedDto,
+} from '@/common/dto/cursor-pagination';
+import { cursorPaginateWithPrisma } from '@/utils/pagination/prisma-pagination.util';
+import { Order } from '@/constants/app.constant';
 
 @Injectable()
 export class ChatService {
@@ -370,5 +376,89 @@ export class ChatService {
         joinedAt: member.joinedAt,
       })),
     };
+  }
+
+  /**
+   * Get chat messages with cursor-based pagination
+   * @param chatId - Chat ID
+   * @param userId - Keycloak user ID of the requesting user
+   * @param cursorPageOptionsDto - Cursor pagination options
+   * @returns Paginated list of messages
+   */
+  async getChatMessages(
+    chatId: string,
+    userId: string,
+    cursorPageOptionsDto: CursorPageOptionsDto,
+  ): Promise<CursorPaginatedDto<MessageResponseDto>> {
+    // Verify chat exists and get members
+    const chat = await this.prisma.chat.findUnique({
+      where: { id: chatId },
+      include: {
+        members: true,
+      },
+    });
+
+    if (!chat) {
+      throw new NotFoundException(`Chat with ID ${chatId} not found`);
+    }
+
+    // Verify user is a member of the chat
+    const isMember = chat.members.some((member) => member.userId === userId);
+
+    if (!isMember) {
+      throw new ForbiddenException('You are not a member of this chat');
+    }
+
+    // Build orderBy - messages should be ordered by createdAt
+    // Default to DESC (newest first) for chat messages
+    const orderBy = {
+      createdAt: cursorPageOptionsDto.order === Order.Asc ? 'asc' : 'desc',
+    } as const;
+
+    // Build where clause
+    const where: {
+      chatId: string;
+      isDeleted: boolean;
+      content?: { contains: string; mode: 'insensitive' };
+    } = {
+      chatId,
+      isDeleted: false, // Only return non-deleted messages
+    };
+
+    // Add search filter if provided
+    if (cursorPageOptionsDto.search) {
+      where.content = {
+        contains: cursorPageOptionsDto.search,
+        mode: 'insensitive' as const,
+      };
+    }
+
+    // Use cursor pagination utility
+    const paginatedMessages = await cursorPaginateWithPrisma<
+      MessageResponseDto,
+      NonNullable<Parameters<typeof this.prisma.message.findMany>[0]>
+    >(
+      this.prisma.message,
+      cursorPageOptionsDto,
+      {
+        where,
+        orderBy,
+      },
+      'id', // Use 'id' as cursor field
+    );
+
+    this.logger.log(
+      `Retrieved ${paginatedMessages.data.length} messages for chat: ${chatId}`,
+      'ChatService',
+      {
+        chatId,
+        userId,
+        messageCount: paginatedMessages.data.length,
+        hasNextPage: paginatedMessages.meta.hasNextPage,
+        search: cursorPageOptionsDto.search,
+      },
+    );
+
+    return paginatedMessages;
   }
 }
