@@ -1,4 +1,13 @@
-import { Controller, Post, Body, Get, Param, Query, Put } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  Query,
+  Put,
+  Delete,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import {
   ApiStandardResponse,
@@ -289,6 +298,68 @@ export class ChatController {
     );
 
     return updatedMessage;
+  }
+
+  @Delete(':chatId/messages/:messageId')
+  @ApiOperation({
+    summary: 'Delete (soft delete) a message',
+    description:
+      'Soft deletes a message by setting isDeleted flag to true. Only the original sender can delete their message, and only within 10 minutes of creation. The message content is preserved for audit purposes.',
+  })
+  @ApiStandardResponse({
+    status: 200,
+    description: 'Message deleted successfully',
+    type: MessageResponseDto,
+  })
+  @ApiStandardErrorResponse({
+    status: 400,
+    description: 'Bad Request - Message is older than 10 minutes',
+    errorCode: 'BAD_REQUEST',
+  })
+  @ApiStandardErrorResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing token',
+    errorCode: 'UNAUTHORIZED',
+  })
+  @ApiStandardErrorResponse({
+    status: 403,
+    description:
+      'Forbidden - User is not the sender or not a member of the chat',
+    errorCode: 'FORBIDDEN',
+  })
+  @ApiStandardErrorResponse({
+    status: 404,
+    description:
+      'Not Found - Chat or message does not exist, or message is already deleted',
+    errorCode: 'NOT_FOUND',
+  })
+  async deleteMessage(
+    @AuthenticatedUser() user: any,
+    @Param('chatId') chatId: string,
+    @Param('messageId') messageId: string,
+  ): Promise<MessageResponseDto> {
+    const userId = user.sub as string;
+
+    // Delete message via service (soft delete)
+    const deletedMessage = await this.chatService.deleteMessage(
+      chatId,
+      messageId,
+      userId,
+    );
+
+    // Emit WebSocket event to chat room (notify other members)
+    this.websocketService.emitToRoom(
+      `chat:${chatId}`,
+      WEBSOCKET_EVENTS.MESSAGE_DELETED,
+      deletedMessage,
+      {
+        chatId,
+        messageId,
+        userId,
+      },
+    );
+
+    return deletedMessage;
   }
 
   @Post(':chatId/members')

@@ -561,4 +561,101 @@ export class ChatService {
       updatedAt: updatedMessage.updatedAt,
     };
   }
+
+  /**
+   * Delete (soft delete) a message
+   * @param chatId - Chat ID
+   * @param messageId - Message ID
+   * @param userId - Keycloak user ID of the requesting user
+   * @returns Soft-deleted message
+   */
+  async deleteMessage(
+    chatId: string,
+    messageId: string,
+    userId: string,
+  ): Promise<MessageResponseDto> {
+    // Verify chat exists and user is a member
+    const chat = await this.prisma.chat.findUnique({
+      where: { id: chatId },
+      include: {
+        members: true,
+      },
+    });
+
+    if (!chat) {
+      throw new NotFoundException(`Chat with ID ${chatId} not found`);
+    }
+
+    // Verify user is a member of the chat
+    const isMember = chat.members.some((member) => member.userId === userId);
+
+    if (!isMember) {
+      throw new ForbiddenException('You are not a member of this chat');
+    }
+
+    // Fetch the message
+    const message = await this.prisma.message.findUnique({
+      where: { id: messageId },
+    });
+
+    if (!message) {
+      throw new NotFoundException(`Message with ID ${messageId} not found`);
+    }
+
+    // Verify message belongs to the chat
+    if (message.chatId !== chatId) {
+      throw new NotFoundException(
+        `Message with ID ${messageId} not found in this chat`,
+      );
+    }
+
+    // Verify message is not already deleted
+    if (message.isDeleted) {
+      throw new NotFoundException(`Message with ID ${messageId} not found`);
+    }
+
+    // Verify user is the sender
+    if (message.senderId !== userId) {
+      throw new ForbiddenException('You can only delete your own messages');
+    }
+
+    // Check if message was created within the last 10 minutes
+    const now = new Date();
+    const createdAt = new Date(message.createdAt);
+    const minutesSinceCreation =
+      (now.getTime() - createdAt.getTime()) / (1000 * 60);
+
+    if (minutesSinceCreation > 10) {
+      throw new BadRequestException(
+        'Messages can only be deleted within 10 minutes of creation',
+      );
+    }
+
+    // Soft delete the message
+    const deletedMessage = await this.prisma.message.update({
+      where: { id: messageId },
+      data: {
+        isDeleted: true,
+        updatedAt: new Date(),
+      },
+    });
+
+    this.logger.log(`Message deleted: ${messageId}`, 'ChatService', {
+      messageId,
+      chatId,
+      userId,
+      minutesSinceCreation: minutesSinceCreation.toFixed(2),
+    });
+
+    return {
+      id: deletedMessage.id,
+      chatId: deletedMessage.chatId,
+      senderId: deletedMessage.senderId,
+      content: deletedMessage.content,
+      isEdited: deletedMessage.isEdited,
+      isDeleted: deletedMessage.isDeleted,
+      createdAt: deletedMessage.createdAt,
+      updatedAt: deletedMessage.updatedAt,
+    };
+  }
 }
