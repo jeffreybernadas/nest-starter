@@ -32,6 +32,14 @@ export const WEBSOCKET_EVENTS = {
   // User events
   GET_ONLINE_USERS: 'get-online-users',
   ONLINE_USERS: 'online-users',
+
+  // Chat events
+  NEW_MESSAGE: 'chat:new-message',
+  MESSAGE_SENT: 'chat:message-sent',
+  MESSAGE_UPDATED: 'chat:message-updated',
+  MESSAGE_DELETED: 'chat:message-deleted',
+  USER_JOINED_CHAT: 'chat:user-joined',
+  USER_LEFT_CHAT: 'chat:user-left',
 } as const;
 
 /**
