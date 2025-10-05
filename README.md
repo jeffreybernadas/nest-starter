@@ -82,10 +82,11 @@
   - Add example of sending emails regarding unread chats every 8 pm of the day (PH time)
 - [x] Websocket using Socket.io via Redis Adapter and add chatting functionality
   - [x] POST /api/v1/chat - Create a new chat (group chat)
-  - [ ] GET /api/v1/chat - List chats user belongs to
-  - [ ] GET /api/v1/chat/:chatId - Get chat details (users, name, all users, type: group/direct)
+  - [x] GET /api/v1/chat - List chats user belongs to
+  - [x] GET /api/v1/chat/:chatId - Get chat details (users, name, all users, type: group/direct)
   - [ ] GET /api/v1/chat/:chatId/messages - Fetch chat history (with cursor pagination)
-  - [ ] POST /api/v1/chat/:chatId/messages - Send a new message
+  - [x] POST /api/v1/chat/:chatId/messages - Send a new message
+  - [x] POST /api/v1/chat/:chatId/members - Add a member to a group chat
   - [ ] PUT /api/v1/chat/:chatId/messages/:messageId - Update message (only if <10 min old & sender = user)
   - [ ] DELETE /api/v1/chat/:chatId/messages/:messageId - Delete message (only if <10 min old & sender = user)
 - [x] Email template with React Email and Resend for sending emails
