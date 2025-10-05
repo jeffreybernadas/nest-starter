@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, Query } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Query, Put } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import {
   ApiStandardResponse,
@@ -225,6 +225,70 @@ export class ChatController {
     );
 
     return message;
+  }
+
+  @Put(':chatId/messages/:messageId')
+  @ApiOperation({
+    summary: 'Update (edit) a message',
+    description:
+      'Updates the content of an existing message. Only the original sender can edit their message, and only within 10 minutes of creation. The message must not be deleted. Sets isEdited flag to true.',
+  })
+  @ApiStandardResponse({
+    status: 200,
+    description: 'Message updated successfully',
+    type: MessageResponseDto,
+  })
+  @ApiStandardErrorResponse({
+    status: 400,
+    description: 'Bad Request - Message is older than 10 minutes',
+    errorCode: 'BAD_REQUEST',
+  })
+  @ApiStandardErrorResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing token',
+    errorCode: 'UNAUTHORIZED',
+  })
+  @ApiStandardErrorResponse({
+    status: 403,
+    description:
+      'Forbidden - User is not the sender or not a member of the chat',
+    errorCode: 'FORBIDDEN',
+  })
+  @ApiStandardErrorResponse({
+    status: 404,
+    description:
+      'Not Found - Chat or message does not exist, or message is deleted',
+    errorCode: 'NOT_FOUND',
+  })
+  async updateMessage(
+    @AuthenticatedUser() user: any,
+    @Param('chatId') chatId: string,
+    @Param('messageId') messageId: string,
+    @Body() dto: SendMessageDto,
+  ): Promise<MessageResponseDto> {
+    const userId = user.sub as string;
+
+    // Update message via service
+    const updatedMessage = await this.chatService.updateMessage(
+      chatId,
+      messageId,
+      userId,
+      dto,
+    );
+
+    // Emit WebSocket event to chat room (notify other members)
+    this.websocketService.emitToRoom(
+      `chat:${chatId}`,
+      WEBSOCKET_EVENTS.MESSAGE_UPDATED,
+      updatedMessage,
+      {
+        chatId,
+        messageId,
+        userId,
+      },
+    );
+
+    return updatedMessage;
   }
 
   @Post(':chatId/members')

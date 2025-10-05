@@ -461,4 +461,104 @@ export class ChatService {
 
     return paginatedMessages;
   }
+
+  /**
+   * Update (edit) a message
+   * @param chatId - Chat ID
+   * @param messageId - Message ID
+   * @param userId - Keycloak user ID of the requesting user
+   * @param dto - Updated message content
+   * @returns Updated message
+   */
+  async updateMessage(
+    chatId: string,
+    messageId: string,
+    userId: string,
+    dto: SendMessageDto,
+  ): Promise<MessageResponseDto> {
+    // Verify chat exists and user is a member
+    const chat = await this.prisma.chat.findUnique({
+      where: { id: chatId },
+      include: {
+        members: true,
+      },
+    });
+
+    if (!chat) {
+      throw new NotFoundException(`Chat with ID ${chatId} not found`);
+    }
+
+    // Verify user is a member of the chat
+    const isMember = chat.members.some((member) => member.userId === userId);
+
+    if (!isMember) {
+      throw new ForbiddenException('You are not a member of this chat');
+    }
+
+    // Fetch the message
+    const message = await this.prisma.message.findUnique({
+      where: { id: messageId },
+    });
+
+    if (!message) {
+      throw new NotFoundException(`Message with ID ${messageId} not found`);
+    }
+
+    // Verify message belongs to the chat
+    if (message.chatId !== chatId) {
+      throw new NotFoundException(
+        `Message with ID ${messageId} not found in this chat`,
+      );
+    }
+
+    // Verify message is not deleted
+    if (message.isDeleted) {
+      throw new NotFoundException(`Message with ID ${messageId} not found`);
+    }
+
+    // Verify user is the sender
+    if (message.senderId !== userId) {
+      throw new ForbiddenException('You can only edit your own messages');
+    }
+
+    // Check if message was created within the last 10 minutes
+    const now = new Date();
+    const createdAt = new Date(message.createdAt);
+    const minutesSinceCreation =
+      (now.getTime() - createdAt.getTime()) / (1000 * 60);
+
+    if (minutesSinceCreation > 10) {
+      throw new BadRequestException(
+        'Messages can only be edited within 10 minutes of creation',
+      );
+    }
+
+    // Update the message
+    const updatedMessage = await this.prisma.message.update({
+      where: { id: messageId },
+      data: {
+        content: dto.content,
+        isEdited: true,
+        updatedAt: new Date(),
+      },
+    });
+
+    this.logger.log(`Message updated: ${messageId}`, 'ChatService', {
+      messageId,
+      chatId,
+      userId,
+      minutesSinceCreation: minutesSinceCreation.toFixed(2),
+    });
+
+    return {
+      id: updatedMessage.id,
+      chatId: updatedMessage.chatId,
+      senderId: updatedMessage.senderId,
+      content: updatedMessage.content,
+      isEdited: updatedMessage.isEdited,
+      isDeleted: updatedMessage.isDeleted,
+      createdAt: updatedMessage.createdAt,
+      updatedAt: updatedMessage.updatedAt,
+    };
+  }
 }
