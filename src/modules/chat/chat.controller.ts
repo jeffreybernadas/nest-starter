@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import {
   ApiStandardResponse,
@@ -45,5 +45,61 @@ export class ChatController {
   ): Promise<ChatResponseDto> {
     const creatorId = user.sub as string;
     return this.chatService.createChat(creatorId, dto);
+  }
+
+  @Get()
+  @ApiOperation({
+    summary: 'List all chats user belongs to',
+    description:
+      'Retrieves all chats where the authenticated user is a member. Returns chats ordered by most recently updated first.',
+  })
+  @ApiStandardResponse({
+    status: 200,
+    description: 'Chats retrieved successfully',
+    type: ChatResponseDto,
+    isArray: true,
+  })
+  @ApiStandardErrorResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing token',
+    errorCode: 'UNAUTHORIZED',
+  })
+  getUserChats(@AuthenticatedUser() user: any): Promise<ChatResponseDto[]> {
+    const userId = user.sub as string;
+    return this.chatService.getUserChats(userId);
+  }
+
+  @Get(':chatId')
+  @ApiOperation({
+    summary: 'Get chat details',
+    description:
+      'Retrieves detailed information about a specific chat including all members. User must be a member of the chat to access this information.',
+  })
+  @ApiStandardResponse({
+    status: 200,
+    description: 'Chat details retrieved successfully',
+    type: ChatResponseDto,
+  })
+  @ApiStandardErrorResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing token',
+    errorCode: 'UNAUTHORIZED',
+  })
+  @ApiStandardErrorResponse({
+    status: 403,
+    description: 'Forbidden - User is not a member of this chat',
+    errorCode: 'FORBIDDEN',
+  })
+  @ApiStandardErrorResponse({
+    status: 404,
+    description: 'Not Found - Chat does not exist',
+    errorCode: 'NOT_FOUND',
+  })
+  getChatById(
+    @AuthenticatedUser() user: any,
+    @Param('chatId') chatId: string,
+  ): Promise<ChatResponseDto> {
+    const userId = user.sub as string;
+    return this.chatService.getChatById(chatId, userId);
   }
 }

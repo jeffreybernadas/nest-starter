@@ -80,8 +80,8 @@
   - Maybe an email after they create a group chat?
 - [ ] Worker server for processing background tasks like queues
   - Add example of sending emails regarding unread chats every 8 pm of the day (PH time)
-- [ ] Websocket using Socket.io via Redis Adapter and add chatting functionality
-  - [ ] POST /api/v1/chat - Create a new chat (group chat)
+- [x] Websocket using Socket.io via Redis Adapter and add chatting functionality
+  - [x] POST /api/v1/chat - Create a new chat (group chat)
   - [ ] GET /api/v1/chat - List chats user belongs to
   - [ ] GET /api/v1/chat/:chatId - Get chat details (users, name, all users, type: group/direct)
   - [ ] GET /api/v1/chat/:chatId/messages - Fetch chat history (with cursor pagination)

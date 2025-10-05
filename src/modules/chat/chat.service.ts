@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '@/database/database.service';
 import { LoggerService } from '@/shared/logger/logger.service';
 import { CreateChatDto } from './dto/create-chat.dto';
@@ -103,6 +108,105 @@ export class ChatService {
       createdAt: chat!.createdAt,
       updatedAt: chat!.updatedAt,
       members: chat!.members.map((member) => ({
+        id: member.id,
+        userId: member.userId,
+        joinedAt: member.joinedAt,
+      })),
+    };
+  }
+
+  /**
+   * Get all chats the user belongs to
+   * @param userId - Keycloak user ID
+   * @returns List of chats the user is a member of
+   */
+  async getUserChats(userId: string): Promise<ChatResponseDto[]> {
+    // Find all chats where the user is a member
+    const chatMembers = await this.prisma.chatMember.findMany({
+      where: { userId },
+      include: {
+        chat: {
+          include: {
+            members: {
+              orderBy: { joinedAt: 'asc' },
+            },
+          },
+        },
+      },
+      orderBy: {
+        chat: {
+          updatedAt: 'desc',
+        },
+      },
+    });
+
+    this.logger.log(
+      `Retrieved ${chatMembers.length} chats for user`,
+      'ChatService',
+      {
+        userId,
+        chatCount: chatMembers.length,
+      },
+    );
+
+    return chatMembers.map((chatMember) => ({
+      id: chatMember.chat.id,
+      name: chatMember.chat.name,
+      type: chatMember.chat.type,
+      creatorId: chatMember.chat.creatorId,
+      createdAt: chatMember.chat.createdAt,
+      updatedAt: chatMember.chat.updatedAt,
+      members: chatMember.chat.members.map((member) => ({
+        id: member.id,
+        userId: member.userId,
+        joinedAt: member.joinedAt,
+      })),
+    }));
+  }
+
+  /**
+   * Get detailed information about a specific chat
+   * @param chatId - Chat ID
+   * @param userId - Keycloak user ID of the requesting user
+   * @returns Chat details with all members
+   */
+  async getChatById(chatId: string, userId: string): Promise<ChatResponseDto> {
+    // Check if chat exists
+    const chat = await this.prisma.chat.findUnique({
+      where: { id: chatId },
+      include: {
+        members: {
+          orderBy: { joinedAt: 'asc' },
+        },
+      },
+    });
+
+    if (!chat) {
+      throw new NotFoundException(`Chat with ID ${chatId} not found`);
+    }
+
+    // Check if user is a member of the chat
+    const isMember = chat.members.some((member) => member.userId === userId);
+
+    if (!isMember) {
+      throw new ForbiddenException('You are not a member of this chat');
+    }
+
+    this.logger.log(`Retrieved chat details: ${chatId}`, 'ChatService', {
+      chatId,
+      userId,
+      type: chat.type,
+      memberCount: chat.members.length,
+    });
+
+    return {
+      id: chat.id,
+      name: chat.name,
+      type: chat.type,
+      creatorId: chat.creatorId,
+      createdAt: chat.createdAt,
+      updatedAt: chat.updatedAt,
+      members: chat.members.map((member) => ({
         id: member.id,
         userId: member.userId,
         joinedAt: member.joinedAt,
