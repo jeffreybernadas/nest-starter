@@ -36,6 +36,8 @@ import { KeycloakModule } from '@/shared/keycloak/keycloak.module';
 import keycloakConfig from '@/config/keycloak/keycloak.config';
 import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import rabbitmqConfig from '@/config/rabbitmq/rabbitmq.config';
+import { StripeModule } from '@golevelup/nestjs-stripe';
+import stripeConfig from '@/config/stripe/stripe.config';
 
 @Module({
   imports: [
@@ -51,6 +53,7 @@ import rabbitmqConfig from '@/config/rabbitmq/rabbitmq.config';
         websocketConfig,
         keycloakConfig,
         rabbitmqConfig,
+        stripeConfig,
       ],
     }),
     DatabaseModule,
@@ -125,6 +128,21 @@ import rabbitmqConfig from '@/config/rabbitmq/rabbitmq.config';
           },
         ],
         connectionInitOptions: { wait: false },
+      }),
+    }),
+    StripeModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        apiKey: config.get('stripe.apiKey')!,
+        webhookConfig: {
+          stripeSecrets: {
+            account: config.get('stripe.account')!,
+            accountTest: config.get('stripe.accountTest')!,
+            connect: config.get('stripe.connect')!,
+            connectTest: config.get('stripe.connectTest')!,
+          },
+        },
       }),
     }),
     WebSocketModule.forRootAsync({

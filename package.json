@@ -34,6 +34,7 @@
   "dependencies": {
     "@elastic/elasticsearch": "^9.1.1",
     "@golevelup/nestjs-rabbitmq": "^6.0.2",
+    "@golevelup/nestjs-stripe": "^0.9.3",
     "@golevelup/ts-jest": "^0.7.0",
     "@nest-lab/throttler-storage-redis": "^1.1.0",
     "@nestjs/axios": "^4.0.1",
@@ -73,6 +74,7 @@
     "resend": "^6.1.0",
     "rxjs": "^7.8.1",
     "socket.io": "^4.8.1",
+    "stripe": "^19.1.0",
     "tslib": "^2.8.1",
     "winston": "^3.17.0",
     "winston-elasticsearch": "^0.19.0"
