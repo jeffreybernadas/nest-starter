@@ -14,9 +14,11 @@ import { CustomErrorException } from '@/filters/exceptions/custom-error.exceptio
 import { CustomWsErrorException } from '@/filters/exceptions/websocket-error.exception';
 import { Prisma } from '@prisma/client';
 import { WebSocketErrorResponse } from '@/common/interfaces/websocket.interface';
+import { SentryExceptionCaptured } from '@sentry/nestjs';
 
 @Catch()
 export class ExceptionsFilter<T> implements ExceptionFilter {
+  @SentryExceptionCaptured()
   catch(exception: T, host: ArgumentsHost): void {
     const contextType = host.getType<'http' | 'ws'>();
 
@@ -104,7 +106,7 @@ export class ExceptionsFilter<T> implements ExceptionFilter {
     } else {
       // Handle non-HTTP exceptions
       statusCode = 500;
-      message = 'Internal server error';
+      message = (exception as HttpException).message ?? 'Internal server error';
       customCode = 'GENERIC_ERROR';
     }
 

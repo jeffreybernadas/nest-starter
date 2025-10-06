@@ -7,6 +7,7 @@ import { WebSocketConfig } from '@/config/websocket/websocket-config.type';
 import { KeycloakConfig } from '@/config/keycloak/keycloak-config.type';
 import { RabbitMQConfig } from '@/config/rabbitmq/rabbitmq-config.type';
 import { StripeConfig } from '@/config/stripe/stripe-config.type';
+import { SentryConfig } from '@/config//sentry/sentry-config.type';
 
 export type GlobalConfig = {
   app: AppConfig;
@@ -18,4 +19,5 @@ export type GlobalConfig = {
   keycloak: KeycloakConfig;
   rabbitmq: RabbitMQConfig;
   stripe: StripeConfig;
+  sentry: SentryConfig;
 };

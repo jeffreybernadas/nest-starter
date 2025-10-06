@@ -77,6 +77,9 @@
   - [x] DELETE /api/v1/chat/:chatId/messages/:messageId - Delete message (only if <10 min old & sender = user)
 - [x] Commitlint and Husky
 - [x] REST & WebSocket API
+- [x] Stripe API (@golevelup/nestjs-stripe stripe)
+- [x] Sentry
+- [x] Nest.js best practices are utilized
 
 ### In Progress
 
@@ -91,11 +94,7 @@
   - Add example of sending emails regarding unread chats every 8 pm of the day (PH time)
 - [x] Email template with React Email and Resend for sending emails
   - [ ] Reply to chat message email template (worker server task)
-- [ ] Stripe API (@golevelup/nestjs-stripe stripe)
-- [ ] Add Internationalization with i18n
 - [ ] Docker compose for services
-- [ ] Sentry
-- [ ] Nest.js best practices are utilized
 
 ## Issues
 

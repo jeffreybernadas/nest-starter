@@ -38,6 +38,8 @@ import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import rabbitmqConfig from '@/config/rabbitmq/rabbitmq.config';
 import { StripeModule } from '@golevelup/nestjs-stripe';
 import stripeConfig from '@/config/stripe/stripe.config';
+import sentryConfig from '@/config/sentry/sentry.config';
+import { SentryModule } from '@sentry/nestjs/setup';
 
 @Module({
   imports: [
@@ -54,11 +56,13 @@ import stripeConfig from '@/config/stripe/stripe.config';
         keycloakConfig,
         rabbitmqConfig,
         stripeConfig,
+        sentryConfig,
       ],
     }),
     DatabaseModule,
     ApiModule,
     LoggerModule,
+    SentryModule.forRoot(),
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
