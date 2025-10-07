@@ -9,6 +9,7 @@ import { UseFilters } from '@nestjs/common';
 import { ExceptionsFilter } from '@/filters/exceptions.filter';
 import { WEBSOCKET_EVENTS } from '@/constants/websocket.constant';
 import { LoggerService } from '@/shared/logger/logger.service';
+import { ChatService } from './chat.service';
 
 /**
  * Chat-specific WebSocket gateway
@@ -22,7 +23,10 @@ import { LoggerService } from '@/shared/logger/logger.service';
 })
 @UseFilters(ExceptionsFilter)
 export class ChatGateway {
-  constructor(private readonly logger: LoggerService) {}
+  constructor(
+    private readonly logger: LoggerService,
+    private readonly chatService: ChatService,
+  ) {}
 
   /**
    * Handle user typing event
@@ -90,14 +94,14 @@ export class ChatGateway {
 
   /**
    * Handle message read event
-   * Broadcasts to all other users in the chat room
+   * Persists read status to database and broadcasts to all other users in the chat room
    */
   @SubscribeMessage(WEBSOCKET_EVENTS.MESSAGE_READ)
-  handleMessageRead(
+  async handleMessageRead(
     @ConnectedSocket() client: Socket,
     @MessageBody()
     payload: { chatId: string; messageId: string; userId: string },
-  ): void {
+  ): Promise<void> {
     const { chatId, messageId, userId } = payload;
 
     if (!chatId || !messageId || !userId) {
@@ -109,31 +113,47 @@ export class ChatGateway {
       return;
     }
 
-    // Broadcast to all users in the chat room except the sender
-    client.to(`chat:${chatId}`).emit(WEBSOCKET_EVENTS.MESSAGE_READ, {
-      success: true,
-      statusCode: 200,
-      timestamp: new Date().toISOString(),
-      data: { chatId, messageId, userId },
-    });
+    try {
+      // Persist read status to database
+      await this.chatService.markMessageAsRead(messageId, userId);
 
-    this.logger.log(`Message read in chat: ${chatId}`, 'ChatGateway', {
-      chatId,
-      messageId,
-      userId,
-    });
+      // Broadcast to all users in the chat room except the sender
+      client.to(`chat:${chatId}`).emit(WEBSOCKET_EVENTS.MESSAGE_READ, {
+        success: true,
+        statusCode: 200,
+        timestamp: new Date().toISOString(),
+        data: { chatId, messageId, userId },
+      });
+
+      this.logger.log(`Message read in chat: ${chatId}`, 'ChatGateway', {
+        chatId,
+        messageId,
+        userId,
+      });
+    } catch (error) {
+      this.logger.error(
+        `Failed to mark message as read: ${messageId}`,
+        'ChatGateway',
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          chatId,
+          messageId,
+          userId,
+        },
+      );
+    }
   }
 
   /**
    * Handle bulk messages read event
-   * Broadcasts to all other users in the chat room
+   * Persists read status to database and broadcasts to all other users in the chat room
    */
   @SubscribeMessage(WEBSOCKET_EVENTS.MESSAGES_READ)
-  handleMessagesRead(
+  async handleMessagesRead(
     @ConnectedSocket() client: Socket,
     @MessageBody()
     payload: { chatId: string; messageIds: string[]; userId: string },
-  ): void {
+  ): Promise<void> {
     const { chatId, messageIds, userId } = payload;
 
     if (!chatId || !messageIds || !Array.isArray(messageIds) || !userId) {
@@ -145,19 +165,35 @@ export class ChatGateway {
       return;
     }
 
-    // Broadcast to all users in the chat room except the sender
-    client.to(`chat:${chatId}`).emit(WEBSOCKET_EVENTS.MESSAGES_READ, {
-      success: true,
-      statusCode: 200,
-      timestamp: new Date().toISOString(),
-      data: { chatId, messageIds, userId, count: messageIds.length },
-    });
+    try {
+      // Persist read status to database (bulk operation)
+      await this.chatService.markMessagesAsRead(messageIds, userId);
 
-    this.logger.log(`Bulk messages read in chat: ${chatId}`, 'ChatGateway', {
-      chatId,
-      userId,
-      count: messageIds.length,
-    });
+      // Broadcast to all users in the chat room except the sender
+      client.to(`chat:${chatId}`).emit(WEBSOCKET_EVENTS.MESSAGES_READ, {
+        success: true,
+        statusCode: 200,
+        timestamp: new Date().toISOString(),
+        data: { chatId, messageIds, userId, count: messageIds.length },
+      });
+
+      this.logger.log(`Bulk messages read in chat: ${chatId}`, 'ChatGateway', {
+        chatId,
+        userId,
+        count: messageIds.length,
+      });
+    } catch (error) {
+      this.logger.error(
+        `Failed to mark messages as read in chat: ${chatId}`,
+        'ChatGateway',
+        {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          chatId,
+          userId,
+          messageCount: messageIds.length,
+        },
+      );
+    }
   }
 
   /**

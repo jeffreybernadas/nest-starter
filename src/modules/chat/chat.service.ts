@@ -447,6 +447,25 @@ export class ChatService {
       'id', // Use 'id' as cursor field
     );
 
+    // Automatically mark fetched messages as read (convenience feature)
+    // This ensures messages are marked as read when user opens/scrolls through chat
+    if (paginatedMessages.data.length > 0) {
+      const messageIds = paginatedMessages.data.map((msg) => msg.id);
+      // Fire and forget - don't await to avoid slowing down the response
+      this.markMessagesAsRead(messageIds, userId).catch((error) => {
+        this.logger.error(
+          'Failed to auto-mark messages as read',
+          'ChatService',
+          {
+            error: error instanceof Error ? error.message : 'Unknown error',
+            chatId,
+            userId,
+            messageCount: messageIds.length,
+          },
+        );
+      });
+    }
+
     this.logger.log(
       `Retrieved ${paginatedMessages.data.length} messages for chat: ${chatId}`,
       'ChatService',
@@ -657,5 +676,138 @@ export class ChatService {
       createdAt: deletedMessage.createdAt,
       updatedAt: deletedMessage.updatedAt,
     };
+  }
+
+  /**
+   * Mark a single message as read by a user
+   * @param messageId - Message ID
+   * @param userId - Keycloak user ID of the user marking the message as read
+   * @returns void
+   */
+  async markMessageAsRead(messageId: string, userId: string): Promise<void> {
+    // Verify message exists
+    const message = await this.prisma.message.findUnique({
+      where: { id: messageId },
+      include: {
+        chat: {
+          include: {
+            members: true,
+          },
+        },
+      },
+    });
+
+    if (!message) {
+      throw new NotFoundException(`Message with ID ${messageId} not found`);
+    }
+
+    // Verify user is a member of the chat
+    const isMember = message.chat.members.some(
+      (member) => member.userId === userId,
+    );
+
+    if (!isMember) {
+      throw new ForbiddenException('You are not a member of this chat');
+    }
+
+    // Don't mark own messages as read
+    if (message.senderId === userId) {
+      return;
+    }
+
+    // Create MessageRead record (upsert to handle duplicate calls)
+    await this.prisma.messageRead.upsert({
+      where: {
+        messageId_userId: {
+          messageId,
+          userId,
+        },
+      },
+      create: {
+        messageId,
+        userId,
+      },
+      update: {
+        readAt: new Date(),
+      },
+    });
+
+    this.logger.log(`Message marked as read: ${messageId}`, 'ChatService', {
+      messageId,
+      userId,
+      chatId: message.chatId,
+    });
+  }
+
+  /**
+   * Mark multiple messages as read by a user (bulk operation)
+   * @param messageIds - Array of message IDs
+   * @param userId - Keycloak user ID of the user marking messages as read
+   * @returns void
+   */
+  async markMessagesAsRead(
+    messageIds: string[],
+    userId: string,
+  ): Promise<void> {
+    if (messageIds.length === 0) {
+      return;
+    }
+
+    // Fetch all messages to verify they exist and user is a member
+    const messages = await this.prisma.message.findMany({
+      where: {
+        id: { in: messageIds },
+      },
+      include: {
+        chat: {
+          include: {
+            members: true,
+          },
+        },
+      },
+    });
+
+    if (messages.length === 0) {
+      throw new NotFoundException('No messages found with the provided IDs');
+    }
+
+    // Verify user is a member of all chats
+    const unauthorizedMessages = messages.filter(
+      (message) =>
+        !message.chat.members.some((member) => member.userId === userId),
+    );
+
+    if (unauthorizedMessages.length > 0) {
+      throw new ForbiddenException('You are not a member of one or more chats');
+    }
+
+    // Filter out messages sent by the user (don't mark own messages as read)
+    const messagesToMark = messages.filter(
+      (message) => message.senderId !== userId,
+    );
+
+    if (messagesToMark.length === 0) {
+      return;
+    }
+
+    // Create MessageRead records for all messages
+    // Use createMany with skipDuplicates to handle already-read messages
+    await this.prisma.messageRead.createMany({
+      data: messagesToMark.map((message) => ({
+        messageId: message.id,
+        userId,
+      })),
+      skipDuplicates: true,
+    });
+
+    this.logger.log(
+      `Marked ${messagesToMark.length} messages as read`,
+      'ChatService',
+      {
+        userId,
+        messageCount: messagesToMark.length,
+        chatIds: [...new Set(messagesToMark.map((m) => m.chatId))],
+      },
+    );
   }
 }

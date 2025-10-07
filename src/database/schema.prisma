@@ -61,8 +61,23 @@ model Message {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  chat   Chat          @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  readBy MessageRead[]
 
   @@index([chatId, createdAt])
   @@index([senderId])
+}
+
+model MessageRead {
+  id        String   @id @default(uuid())
+  messageId String
+  userId    String   // Keycloak user ID
+  readAt    DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([userId])
+  @@index([messageId])
+  @@index([readAt])
 }
