@@ -40,6 +40,7 @@ import { StripeModule } from '@golevelup/nestjs-stripe';
 import stripeConfig from '@/config/stripe/stripe.config';
 import sentryConfig from '@/config/sentry/sentry.config';
 import { SentryModule } from '@sentry/nestjs/setup';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { SentryModule } from '@sentry/nestjs/setup';
     ApiModule,
     LoggerModule,
     SentryModule.forRoot(),
+    ScheduleModule.forRoot(),
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

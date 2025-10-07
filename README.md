@@ -94,6 +94,7 @@
   - Add example of sending emails regarding unread chats every 8 pm of the day (PH time)
 - [x] Email template with React Email and Resend for sending emails
   - [ ] Reply to chat message email template (worker server task)
+- [x] Cron jobs
 - [ ] Docker compose for services
 
 ## Issues
