@@ -1,6 +1,10 @@
 import { render } from '@react-email/components';
 import { TestEmailTemplate } from '@/shared/mail/templates/test-email';
-import { TestEmailTemplateProps } from '@/common/interfaces/email.interface';
+import { ChatUnreadDigestTemplate } from '@/shared/mail/templates/chat-unread-digest';
+import {
+  TestEmailTemplateProps,
+  ChatUnreadDigestProps,
+} from '@/common/interfaces/email.interface';
 
 export class EmailRenderer {
   /**
@@ -10,6 +14,17 @@ export class EmailRenderer {
    */
   static async renderTestEmail(data?: TestEmailTemplateProps): Promise<string> {
     return await render(TestEmailTemplate(data));
+  }
+
+  /**
+   * Renders the ChatUnreadDigest template
+   * @param data - Data to pass to the template
+   * @returns Rendered HTML string
+   */
+  static async renderChatUnreadDigest(
+    data: ChatUnreadDigestProps,
+  ): Promise<string> {
+    return await render(ChatUnreadDigestTemplate(data));
   }
 
   /**
@@ -25,6 +40,8 @@ export class EmailRenderer {
     switch (templateName) {
       case 'test-email':
         return await this.renderTestEmail(data as TestEmailTemplateProps);
+      case 'chat-unread-digest':
+        return await this.renderChatUnreadDigest(data as ChatUnreadDigestProps);
       default:
         throw new Error(`Unknown email template: ${templateName}`);
     }
