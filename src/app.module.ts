@@ -36,6 +36,7 @@ import { KeycloakModule } from '@/shared/keycloak/keycloak.module';
 import keycloakConfig from '@/config/keycloak/keycloak.config';
 import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
 import rabbitmqConfig from '@/config/rabbitmq/rabbitmq.config';
+import { QUEUE_EXCHANGES } from '@/shared/queues/constants/queue.constant';
 import { StripeModule } from '@golevelup/nestjs-stripe';
 import stripeConfig from '@/config/stripe/stripe.config';
 import sentryConfig from '@/config/sentry/sentry.config';
@@ -129,7 +130,11 @@ import { ScheduleModule } from '@nestjs/schedule';
         uri: config.get('rabbitmq.uri') as string,
         exchanges: [
           {
-            name: 'exchange1',
+            name: QUEUE_EXCHANGES.EMAIL,
+            type: 'topic',
+          },
+          {
+            name: QUEUE_EXCHANGES.CHAT,
             type: 'topic',
           },
         ],
