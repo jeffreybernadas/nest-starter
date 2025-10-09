@@ -43,6 +43,18 @@ import sentryConfig from '@/config/sentry/sentry.config';
 import { SentryModule } from '@sentry/nestjs/setup';
 import { ScheduleModule } from '@nestjs/schedule';
 
+/**
+ * App Module
+ * Root module for the main backend application
+ * - Handles HTTP REST API requests
+ * - Manages WebSocket connections
+ * - Publishes messages to RabbitMQ queues (consumed by worker process)
+ *
+ * Architecture Note:
+ * - This is a separate Node.js process from the worker (WorkerModule)
+ * - RabbitMQModule.forRootAsync() automatically registers AmqpConnection globally
+ * - Any module that needs to publish messages to queues can inject AmqpConnection
+ */
 @Module({
   imports: [
     ConfigModule.forRoot({

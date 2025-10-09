@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CacheModule } from '@nestjs/cache-manager';
@@ -15,11 +15,12 @@ import resendConfig from '@/config/resend/resend.config';
 import { DatabaseModule } from '@/database/database.module';
 import { LoggerModule } from '@/shared/logger/logger.module';
 import { ResendModule } from '@/shared/mail/resend.module';
-import { RabbitMQGlobalModule } from '@/shared/queues/rabbitmq-global.module';
 
 // Queue modules
 import { EmailQueueModule } from '@/shared/queues/email/email.module';
 import { ChatQueueModule } from '@/shared/queues/chat/chat.module';
+import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
+import { QUEUE_EXCHANGES } from '@/shared/queues/constants/queue.constant';
 
 /**
  * Worker Module
@@ -27,7 +28,15 @@ import { ChatQueueModule } from '@/shared/queues/chat/chat.module';
  * - Consumes messages from RabbitMQ queues
  * - Runs scheduled cron jobs
  * - Does NOT expose HTTP endpoints or WebSocket connections
+ *
+ * Architecture Note:
+ * - This is a separate Node.js process from the main backend (AppModule)
+ * - RabbitMQModule.forRootAsync() automatically registers AmqpConnection globally
+ * - The @Global() decorator + exports makes RabbitMQModule available to child modules
+ *   (EmailQueueModule, ChatQueueModule) that need AmqpConnection for consumers/producers
+ * - This pattern is necessary because child modules don't import RabbitMQModule directly
  */
+@Global()
 @Module({
   imports: [
     // Global configuration
@@ -63,8 +72,24 @@ import { ChatQueueModule } from '@/shared/queues/chat/chat.module';
       },
     }),
 
-    // RabbitMQ module (global - provides AmqpConnection to all modules)
-    RabbitMQGlobalModule,
+    RabbitMQModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        uri: config.get('rabbitmq.uri') as string,
+        exchanges: [
+          {
+            name: QUEUE_EXCHANGES.EMAIL,
+            type: 'topic',
+          },
+          {
+            name: QUEUE_EXCHANGES.CHAT,
+            type: 'topic',
+          },
+        ],
+        connectionInitOptions: { wait: false },
+      }),
+    }),
 
     // Resend email service
     ResendModule.forRootAsync({
@@ -83,5 +108,6 @@ import { ChatQueueModule } from '@/shared/queues/chat/chat.module';
     EmailQueueModule,
     ChatQueueModule,
   ],
+  exports: [RabbitMQModule],
 })
 export class WorkerModule {}
