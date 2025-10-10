@@ -31,7 +31,7 @@ export async function offsetPaginateWithPrisma<
   const queryOptions = {
     ...options,
     skip: pageOptionsDto.skip,
-    take: pageOptionsDto.limit || 10,
+    take: pageOptionsDto.limit ?? 10,
   } as unknown as TArgs;
 
   // Execute queries in parallel
@@ -73,7 +73,7 @@ export async function cursorPaginateWithPrisma<
   cursorField = 'id', // Field to use for cursor
 ): Promise<CursorPaginatedDto<T>> {
   const { limit, afterCursor, beforeCursor } = pageOptionsDto;
-  const take = limit || 10;
+  const take = limit ?? 10;
 
   // Build the query options
   const queryOptions = {
@@ -81,7 +81,7 @@ export async function cursorPaginateWithPrisma<
     take: take + 1, // Take one extra to check if there's a next page
     orderBy:
       (options as { orderBy?: unknown }).orderBy ||
-      ({ [cursorField]: pageOptionsDto.order || 'asc' } as unknown),
+      ({ [cursorField]: pageOptionsDto.order ?? 'asc' } as unknown),
   } as unknown as TArgs;
 
   // Handle cursor positioning

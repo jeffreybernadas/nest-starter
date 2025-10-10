@@ -419,7 +419,7 @@ export class ChatController {
       },
       {
         chatId,
-        memberCount: updatedChat.members?.length || 0,
+        memberCount: updatedChat.members?.length ?? 0,
       },
     );
 

@@ -47,8 +47,8 @@ export class OffsetPageMetaDto {
   readonly hasNextPage: boolean;
 
   constructor({ pageOptionsDto, itemCount }: OffsetPageMetaDtoParameters) {
-    this.page = pageOptionsDto.page || 1;
-    this.limit = pageOptionsDto.limit || 10;
+    this.page = pageOptionsDto.page ?? 1;
+    this.limit = pageOptionsDto.limit ?? 10;
     this.itemCount = itemCount;
     this.pageCount = Math.ceil(this.itemCount / this.limit);
     this.hasPreviousPage = this.page > 1;

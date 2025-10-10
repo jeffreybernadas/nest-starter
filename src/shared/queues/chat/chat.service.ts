@@ -105,7 +105,7 @@ export class ChatQueueService {
 
         userUnreadMap.get(member.userId)!.unreadChats.push({
           chatId: member.chatId,
-          chatName: member.chat.name || 'Direct Chat',
+          chatName: member.chat.name ?? 'Direct Chat',
           unreadCount,
           lastMessageContent: lastMessage.content,
           lastMessageSenderId: lastMessage.senderId,

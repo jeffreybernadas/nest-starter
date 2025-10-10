@@ -30,7 +30,7 @@ export class EmailQueueService {
 
     try {
       await this.resendService.send({
-        from: emailJob.from || defaultSender || 'noreply@example.com',
+        from: emailJob.from ?? defaultSender ?? 'noreply@example.com',
         to: emailJob.to,
         subject: emailJob.subject,
         html: emailJob.html,

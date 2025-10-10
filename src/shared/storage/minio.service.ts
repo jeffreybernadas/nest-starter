@@ -15,7 +15,7 @@ export class NestMinioService implements INestMinioService {
 
   constructor(
     @Inject(MINIO_CONFIGURATION_OPTIONS)
-    private nestMinioOptions: NestMinioOptions,
+    private readonly nestMinioOptions: NestMinioOptions,
     private readonly logger: LoggerService,
   ) {}
 

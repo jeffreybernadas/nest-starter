@@ -49,11 +49,11 @@ export function getConfig(): AppConfig {
   const port = parseInt(process.env.APP_PORT as string, 10);
 
   return {
-    nodeEnv: (process.env.NODE_ENV || Environment.Development) as Environment,
+    nodeEnv: (process.env.NODE_ENV ?? Environment.Development) as Environment,
     isHttps: process.env.IS_HTTPS === 'true',
     name: process.env.APP_NAME as string,
-    appPrefix: kebabCase(process.env.APP_NAME || 'nest-starter'),
-    url: process.env.APP_URL || `http://localhost:${port}`,
+    appPrefix: kebabCase(process.env.APP_NAME ?? 'nest-starter'),
+    url: process.env.APP_URL ?? `http://localhost:${port}`,
     port,
   };
 }
