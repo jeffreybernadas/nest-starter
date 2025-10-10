@@ -15,10 +15,7 @@ export class ResendService extends Resend {
     @Inject(RESEND_CONFIGURATION_OPTIONS)
     readonly options: ResendOptions,
   ) {
-    if (!options?.apiKey) {
-      return;
-    }
-    super(options.apiKey);
+    super(options?.apiKey ?? '');
   }
 
   public send = async (

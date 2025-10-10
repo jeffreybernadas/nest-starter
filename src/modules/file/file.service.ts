@@ -24,7 +24,7 @@ export class FileService {
       await this.minioClient.makeBucket(bucketName);
     }
     const folderName = folder ?? 'testUpload';
-    const fileName = body.fileName || file.originalname;
+    const fileName = body.fileName ?? file.originalname;
 
     const objectName = `${folderName}/${Date.now()}-${fileName}`;
     await this.minioClient.putObject(
