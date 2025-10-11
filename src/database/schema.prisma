@@ -13,6 +13,27 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+model User {
+  id String @id // Keycloak sub (UUID) - NOT auto-generated
+
+  // From keycloak
+  email         String  @unique
+  username      String? // preferred_username from Keycloak
+  firstName     String? // given_name from Keycloak
+  lastName      String? // family_name from Keycloak
+  emailVerified Boolean @default(false)
+
+  // Additional profile fields (managed by application)
+  phoneNumber String?
+  avatarUrl   String?
+  address     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([username])
+}
 
 enum ChatType {
   DIRECT
@@ -21,9 +42,9 @@ enum ChatType {
 
 model Chat {
   id        String   @id @default(uuid())
-  name      String?  // Optional for direct chats, required for group chats
+  name      String? // Optional for direct chats, required for group chats
   type      ChatType @default(GROUP)
-  creatorId String   // Keycloak user ID
+  creatorId String // Keycloak user ID
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -53,7 +74,7 @@ model ChatMember {
 model Message {
   id        String  @id @default(uuid())
   chatId    String
-  senderId  String  // Keycloak user ID
+  senderId  String // Keycloak user ID
   content   String  @db.Text
   isEdited  Boolean @default(false)
   isDeleted Boolean @default(false)
@@ -71,7 +92,7 @@ model Message {
 model MessageRead {
   id        String   @id @default(uuid())
   messageId String
-  userId    String   // Keycloak user ID
+  userId    String // Keycloak user ID
   readAt    DateTime @default(now())
 
   message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
