@@ -5,7 +5,9 @@ import {
   ApiStandardErrorResponse,
 } from '@/decorators/swagger.decorator';
 import { UserProfileDto } from './dto/user-profile.dto';
+import { KeycloakJWT } from './interfaces/keycloak-jwt.interface';
 import { AuthenticatedUser } from 'nest-keycloak-connect';
+import { UserService } from './user.service';
 
 @ApiTags('users')
 @ApiBearerAuth('JWT')
@@ -14,11 +16,13 @@ import { AuthenticatedUser } from 'nest-keycloak-connect';
   version: '1',
 })
 export class UserController {
+  constructor(private readonly userService: UserService) {}
+
   @Get('/profile')
   @ApiOperation({
     summary: 'Get current user profile',
     description:
-      'Retrieves the authenticated user profile information from the JWT token, including roles and permissions.',
+      'Retrieves the complete user profile by merging Keycloak authentication data with application-specific data from the local database. This endpoint also creates the user record in the database (sync-on-demand pattern).',
   })
   @ApiStandardResponse({
     description: 'User profile retrieved successfully',
@@ -29,24 +33,45 @@ export class UserController {
     description: 'Unauthorized - Invalid or missing token',
     errorCode: 'UNAUTHORIZED',
   })
-  getUserProfile(@AuthenticatedUser() user: any): UserProfileDto {
+  async getUserProfile(
+    @AuthenticatedUser() keycloakUser: KeycloakJWT,
+  ): Promise<UserProfileDto> {
+    // Get user from database or create if doesn't exist (sync-on-demand)
+    const localUser = await this.userService.getOrCreateUser(keycloakUser);
+
+    // Merge Keycloak JWT data with local database data
     return {
-      sub: user.sub,
-      preferred_username: user.preferred_username,
-      email: user.email,
-      email_verified: user.email_verified,
-      given_name: user.given_name,
-      family_name: user.family_name,
-      name: user.name,
-      realm_roles: user.realm_access?.roles,
-      client_roles: user.resource_access,
-      iat: user.iat,
-      exp: user.exp,
-      iss: user.iss,
-      aud: user.aud,
-      session_state: user.session_state,
-      azp: user.azp,
-      scope: user.scope,
+      // Keycloak fields
+      sub: keycloakUser.sub,
+      email: keycloakUser.email,
+      email_verified: keycloakUser.email_verified,
+      preferred_username: keycloakUser.preferred_username,
+      given_name: keycloakUser.given_name,
+      family_name: keycloakUser.family_name,
+      name: keycloakUser.name,
+      realm_roles: keycloakUser.realm_access?.roles,
+      client_roles: keycloakUser.resource_access,
+      iat: keycloakUser.iat,
+      exp: keycloakUser.exp,
+      iss: keycloakUser.iss,
+      aud: keycloakUser.aud,
+      session_state: keycloakUser.session_state,
+      azp: keycloakUser.azp,
+      scope: keycloakUser.scope,
+      jti: keycloakUser.jti,
+      typ: keycloakUser.typ,
+      sid: keycloakUser.sid,
+      acr: keycloakUser.acr,
+      'allowed-origins': keycloakUser['allowed-origins'],
+      locale: keycloakUser.locale,
+      picture: keycloakUser.picture,
+
+      // Application-specific fields (from local database)
+      phoneNumber: localUser.phoneNumber,
+      avatarUrl: localUser.avatarUrl,
+      address: localUser.address,
+      createdAt: localUser.createdAt,
+      updatedAt: localUser.updatedAt,
     };
   }
 }

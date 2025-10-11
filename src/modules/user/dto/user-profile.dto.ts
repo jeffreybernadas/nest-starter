@@ -1,21 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-/**
- * DTO for user profile information from Keycloak
- * Contains decoded JWT token information including user details and roles
- */
 export class UserProfileDto {
+  // Keycloak data
+
   @ApiProperty({
     description: 'Unique user identifier from Keycloak',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
   sub: string;
-
-  @ApiProperty({
-    description: 'Username',
-    example: 'john.doe',
-  })
-  preferred_username: string;
 
   @ApiProperty({
     description: 'User email address',
@@ -28,6 +20,13 @@ export class UserProfileDto {
     example: true,
   })
   email_verified: boolean;
+
+  @ApiProperty({
+    description: 'Username',
+    example: 'john.doe',
+    required: false,
+  })
+  preferred_username?: string;
 
   @ApiProperty({
     description: 'First name',
@@ -60,10 +59,10 @@ export class UserProfileDto {
 
   @ApiProperty({
     description: 'Client roles assigned to the user',
-    example: { 'nest-starter': ['manage-users', 'view-reports'] },
+    example: { account: { roles: ['manage-account', 'view-profile'] } },
     required: false,
   })
-  client_roles?: Record<string, string[]>;
+  client_roles?: Record<string, { roles: string[] }>;
 
   @ApiProperty({
     description: 'Token issued at timestamp',
@@ -109,4 +108,89 @@ export class UserProfileDto {
     required: false,
   })
   scope?: string;
+
+  @ApiProperty({
+    description: 'JWT ID - unique identifier for this token',
+    example: '83f926e1-1ddb-4350-8bd1-78b0dfc72575',
+    required: false,
+  })
+  jti?: string;
+
+  @ApiProperty({
+    description: 'Token type',
+    example: 'Bearer',
+    required: false,
+  })
+  typ?: string;
+
+  @ApiProperty({
+    description: 'Session ID',
+    example: '5126821e-8f0e-4523-807d-71b9e9b2dda0',
+    required: false,
+  })
+  sid?: string;
+
+  @ApiProperty({
+    description: 'Authentication Context Class Reference',
+    example: '1',
+    required: false,
+  })
+  acr?: string;
+
+  @ApiProperty({
+    description: 'Allowed origins for CORS',
+    example: ['http://localhost:3000/*'],
+    type: [String],
+    required: false,
+  })
+  'allowed-origins'?: string[];
+
+  @ApiProperty({
+    description: 'User locale/language preference',
+    example: 'en',
+    required: false,
+  })
+  locale?: string;
+
+  @ApiProperty({
+    description: 'User profile picture URL',
+    example: 'https://avatars.githubusercontent.com/u/0?v=0',
+    required: false,
+  })
+  picture?: string;
+
+  // Application-specific data
+
+  @ApiProperty({
+    description: 'Phone number',
+    example: '+1234567890',
+    required: false,
+  })
+  phoneNumber?: string | null;
+
+  @ApiProperty({
+    description: 'Avatar URL',
+    example: 'https://example.com/avatar.jpg',
+    required: false,
+  })
+  avatarUrl?: string | null;
+
+  @ApiProperty({
+    description: 'Street address',
+    example: '123 Main St',
+    required: false,
+  })
+  address?: string | null;
+
+  @ApiProperty({
+    description: 'Account creation timestamp',
+    example: '2025-10-05T12:00:00.000Z',
+  })
+  createdAt: Date;
+
+  @ApiProperty({
+    description: 'Last profile update timestamp',
+    example: '2025-10-05T12:00:00.000Z',
+  })
+  updatedAt: Date;
 }
