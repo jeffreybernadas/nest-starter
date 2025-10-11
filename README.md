@@ -105,6 +105,11 @@ This starter template includes a comprehensive set of production-ready features 
   - RBAC (Role-Based Access Control) with guards
   - Resource-level permissions
   - User management is done via Keycloak's UI
+- **User Sync-on-Demand Pattern**
+  - Hybrid authentication: Keycloak for auth + local database for app-specific data
+  - Users automatically created in local database on first profile fetch
+  - Keycloak fields (email, roles) always read from JWT token (source of truth)
+  - Local database stores application-specific fields (phoneNumber, avatarUrl, address)
 
 ### 💬 Real-Time Communication
 
@@ -493,6 +498,40 @@ This application runs as **two separate Node.js processes**:
 - **DRY Principles**: Reuse of filters, interceptors, and services across REST and WebSocket
 - **Queue-Based**: Asynchronous processing for emails and notifications
 - **Horizontal Scaling**: Redis adapter enables WebSocket scaling across multiple instances
+
+### User Sync-on-Demand Pattern
+
+This application uses a **hybrid authentication and data storage pattern**:
+
+**Architecture:**
+- **Keycloak**: Manages authentication, JWT tokens, roles, and permissions (source of truth)
+- **Local PostgreSQL**: Stores application-specific user data (phoneNumber, avatarUrl, address, etc.)
+
+**How It Works:**
+
+1. **First Request After Login**
+   ```
+   User logs in → Keycloak issues JWT token
+   Frontend calls GET /api/v1/users/profile
+   Backend checks if user exists in database (by Keycloak sub/user ID)
+   If NOT exists: Create new user record with Keycloak data + null local fields
+   If exists: Return existing user record
+   Response: Merged profile (Keycloak JWT data + local database fields)
+   ```
+
+2. **Subsequent Requests**
+   ```
+   Frontend calls GET /api/v1/users/profile
+   Backend finds existing user in database
+   Response: Merged profile (fresh JWT data + cached database fields)
+   ```
+
+**Key Benefits:**
+- ✅ **Flexibility**: Store any application-specific data alongside Keycloak authentication
+- ✅ **Source of Truth**: Keycloak fields (email, roles) always read from JWT token
+- ✅ **Scalability**: Local database enables complex queries and relationships
+
+**Note:** Keycloak fields cached in the database (email, username, firstName, lastName) may become stale if updated in Keycloak. This is acceptable since these fields are always read from the JWT token in API responses. The database cache is only used for queries and relationships.
 
 ---
 
