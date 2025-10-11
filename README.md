@@ -25,27 +25,72 @@
 
 ---
 
-## 🏢 Infrastructure Note
+## 🏢 Infrastructure & Docker Compose
 
-**Most external services are already hosted in my production environment**, which is why the `docker-compose.yml` file only includes PostgreSQL and Redis for local development.
+### ⚠️ Docker Compose Configuration Notice
 
-### Services NOT Included in Docker Compose:
+**The included `docker-compose.yml` provides a complete local development stack** with all required infrastructure services. However, please note:
 
-- **Elasticsearch** (with APM) - Hosted externally for logging and monitoring
-- **RabbitMQ** - Hosted externally for message queuing
-- **MinIO** - Hosted externally for object storage
-- **Keycloak** - Hosted externally for authentication and authorization
-- **Resend** - Cloud-based email service (API-only)
-- **Stripe** - Cloud-based payment service (API-only)
-- **Sentry** - Cloud-based error tracking (API-only)
+- ⚠️ **NOT PRODUCTION-READY**: This configuration is for local development only
+- ⚠️ **NOT FULLY TESTED**: The Docker Compose setup has not been extensively tested
+- ⚠️ **REQUIRES CUSTOMIZATION**: You will need to adjust the configuration for your specific needs
 
-### To Use This Starter:
+### Services Included in Docker Compose:
 
-You will need to either:
+The `docker-compose.yml` includes the following services:
 
-1. **Provide your own instances** of these services (cloud-hosted or self-hosted)
-2. **Modify the `docker-compose.yml`** to include local instances of these services
-3. **Update the configuration** in `.env` to point to your service instances
+#### Application Services
+- **Server** - Main NestJS application (REST API + WebSocket)
+- **Worker** - Background job processor (RabbitMQ consumer + Cron jobs)
+
+#### Infrastructure Services
+- **PostgreSQL** - Primary application database
+- **Redis** - Caching, rate limiting, and WebSocket adapter
+- **RabbitMQ** - Message queue for background jobs
+- **MinIO** - S3-compatible object storage
+- **Elasticsearch** - Log aggregation and search
+- **Kibana** - Elasticsearch visualization and management
+- **APM Server** - Elastic APM for application performance monitoring
+- **Keycloak** - Authentication and authorization server
+- **Keycloak PostgreSQL** - Dedicated database for Keycloak
+
+#### Cloud Services (Not in Docker Compose)
+- **Resend** - Email delivery service (API-only)
+- **Stripe** - Payment processing (API-only)
+- **Sentry** - Error tracking and monitoring (API-only)
+
+### Docker Compose Files
+
+Three Docker Compose configurations are provided:
+
+1. **`docker-compose.yml`** - Full stack (infrastructure + app/worker)
+   - Use for: Quick start, complete local environment
+   - Command: `docker-compose up -d`
+
+2. **`docker-compose.dev.yml`** - App/worker only (requires external infrastructure)
+   - Use for: Active development with external services
+   - Command: `docker-compose -f docker-compose.dev.yml up -d`
+
+3. **`docker-compose.prod.yml`** - Production build (app/worker only)
+   - Use for: Testing production builds locally
+   - Command: `docker-compose -f docker-compose.prod.yml up -d`
+
+### Before Using Docker Compose:
+
+1. **Review and customize** the `docker-compose.yml` file for your needs
+2. **Update environment variables** in `.env` to match your configuration
+3. **Adjust resource limits** (memory, CPU) based on your system
+4. **Configure networking** if you need custom network settings
+5. **Test thoroughly** before relying on it for development
+
+### Known Configuration Notes:
+
+- **Elasticsearch**: Configured with 2GB heap size, security enabled
+- **Kibana**: Connects to local Elasticsearch instance
+- **APM Server**: Embedded configuration (no separate config file needed)
+- **Keycloak**: Uses dedicated PostgreSQL database (separate from app database)
+- **RabbitMQ**: Management UI available on port 15672
+- **MinIO**: Console available on port 9001
 
 ---
 
@@ -223,11 +268,19 @@ This starter template includes a comprehensive set of production-ready features 
 
 ### Prerequisites
 
+**Option A: Using Docker Compose (Recommended)**
+
+- Docker and Docker Compose installed
+- At least 8 GB of available RAM for all services
+- Ports 3000, 5432, 6379, 5672, 9000, 9001, 9200, 5601, 8200, 8080 available
+
+**Option B: External Services**
+
 Ensure you have the following services running and accessible:
 
 - PostgreSQL database
 - Redis server
-- Elasticsearch cluster
+- Elasticsearch cluster (with APM server)
 - RabbitMQ server
 - MinIO server
 - Keycloak server
@@ -289,13 +342,60 @@ http://localhost:3000/docs
 
 ### Docker Compose (Local Development)
 
-```bash
-# Start PostgreSQL and Redis
-npm run docker:start
+#### Option 1: Full Stack (Recommended for Quick Start)
 
-# Stop services
+Start all infrastructure services + application:
+
+```bash
+# Start all services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop all services
 docker-compose down
+
+# Stop and remove volumes (clean slate)
+docker-compose down -v
 ```
+
+#### Option 2: Infrastructure Only
+
+If you prefer to run the app/worker outside Docker:
+
+```bash
+# Start only infrastructure services
+docker-compose up -d database redis rabbitmq minio elasticsearch kibana apm keycloak keycloak-db
+
+# Then run app and worker locally
+npm run start:dev
+npm run start:worker:dev
+```
+
+#### Option 3: Development Mode (External Infrastructure)
+
+If you have external infrastructure services:
+
+```bash
+# Start only app and worker
+docker-compose -f docker-compose.dev.yml up -d
+```
+
+#### Accessing Services
+
+Once running, you can access:
+
+- **Application**: http://localhost:3000
+- **API Docs (Swagger)**: http://localhost:3000/docs
+- **RabbitMQ Management**: http://localhost:15672 (admin/admin)
+- **MinIO Console**: http://localhost:9001 (minioadmin/minioadmin)
+- **Kibana**: http://localhost:5601
+- **Keycloak**: http://localhost:8080 (admin/admin)
+- **Elasticsearch**: http://localhost:9200
+- **APM Server**: http://localhost:8200
+
+**Note**: Default credentials are shown in parentheses. Change these in your `.env` file for security.
 
 ---
 
@@ -393,22 +493,6 @@ This application runs as **two separate Node.js processes**:
 - **DRY Principles**: Reuse of filters, interceptors, and services across REST and WebSocket
 - **Queue-Based**: Asynchronous processing for emails and notifications
 - **Horizontal Scaling**: Redis adapter enables WebSocket scaling across multiple instances
-
----
-
-## 🔄 Roadmap
-
-### In Progress
-
-- [ ] Multiple database connections with Prisma
-  - [x] PostgreSQL
-  - [ ] MongoDB
-  - [ ] MySQL
-- [ ] Setup bare minimum docker compose for all services
-
-### Known Issues
-
-- Error responses with Prisma could be more detailed
 
 ---
 
