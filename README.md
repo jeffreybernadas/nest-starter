@@ -294,7 +294,7 @@ Ensure you have the following services running and accessible:
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
+git clone https://github.com/jeffreybernadas/nest-starter.git
 cd nest-starter
 
 # Install dependencies
