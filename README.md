@@ -3,7 +3,7 @@
 </p>
 
 <h1 align="center">NestJS Production Starter</h1>
-<p align="center">A highly opinionated, production-ready NestJS starter template with enterprise-grade features.</p>
+<p align="center">A personal, production-ready NestJS starter template with enterprise-grade features.</p>
 
 <p align="center">
   <a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
@@ -14,7 +14,7 @@
 
 ## ⚠️ Important Disclaimer
 
-**This starter template is highly opinionated and tailored to my specific use case and production environment.**
+**This starter template is a personal project and is tailored to my specific use case and production environment.**
 
 - 🎯 **Purpose-Built**: This template reflects my personal development workflow, architectural preferences, and production infrastructure setup.
 - 🔧 **Not Plug-and-Play**: It is **not designed to be a general-purpose starter** and may require significant modifications to fit your needs.
@@ -40,10 +40,12 @@
 The `docker-compose.yml` includes the following services:
 
 #### Application Services
+
 - **Server** - Main NestJS application (REST API + WebSocket)
 - **Worker** - Background job processor (RabbitMQ consumer + Cron jobs)
 
 #### Infrastructure Services
+
 - **PostgreSQL** - Primary application database
 - **Redis** - Caching, rate limiting, and WebSocket adapter
 - **RabbitMQ** - Message queue for background jobs
@@ -55,6 +57,7 @@ The `docker-compose.yml` includes the following services:
 - **Keycloak PostgreSQL** - Dedicated database for Keycloak
 
 #### Cloud Services (Not in Docker Compose)
+
 - **Resend** - Email delivery service (API-only)
 - **Stripe** - Payment processing (API-only)
 - **Sentry** - Error tracking and monitoring (API-only)
@@ -504,12 +507,14 @@ This application runs as **two separate Node.js processes**:
 This application uses a **hybrid authentication and data storage pattern**:
 
 **Architecture:**
+
 - **Keycloak**: Manages authentication, JWT tokens, roles, and permissions (source of truth)
 - **Local PostgreSQL**: Stores application-specific user data (phoneNumber, avatarUrl, address, etc.)
 
 **How It Works:**
 
 1. **First Request After Login**
+
    ```
    User logs in → Keycloak issues JWT token
    Frontend calls GET /api/v1/users/profile
@@ -527,6 +532,7 @@ This application uses a **hybrid authentication and data storage pattern**:
    ```
 
 **Key Benefits:**
+
 - ✅ **Flexibility**: Store any application-specific data alongside Keycloak authentication
 - ✅ **Source of Truth**: Keycloak fields (email, roles) always read from JWT token
 - ✅ **Scalability**: Local database enables complex queries and relationships

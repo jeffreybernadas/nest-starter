@@ -1,9 +1,16 @@
 {
   "name": "nest-starter",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
-  "private": true,
+  "description": "A personal, production-ready NestJS starter template with enterprise-grade features.",
+  "author": {
+    "name": "Jeffrey Bernadas",
+    "email": "jeffrey.bernadas0@gmail.com",
+    "url": "https://jeffreybernadas.com/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jeffreybernadas/nest-starter"
+  },
   "license": "MIT",
   "scripts": {
     "postinstall": "npx prisma generate",
